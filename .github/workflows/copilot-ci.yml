@@ -24,15 +24,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # PRの差分を取得して変数に格納
-          PR_DIFF=$(gh pr diff ${{ github.event.pull_request.number }})
-
-          # 非対話モード (-p / --prompt) で Copilot CLI を呼び出す
-          gh copilot -p "以下のPR差分を分析し，セキュリティ上の問題点や改善提案を簡潔に列挙してください．
-          
-          ---
-          $PR_DIFF" \
-          --allow-tool='shell(*)'
+          gh copilot -p "hello"
 
   copilot-custom-prompt:
     runs-on: ubuntu-latest
