@@ -20,14 +20,19 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Copilot code review
-        if: github.event_name == 'pull_request'
+      - name: Run Copilot CLI Security Review
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh copilot suggest -t shell "review this PR for security issues" \
-            --repo ${{ github.repository }} \
-            --pr ${{ github.event.pull_request.number }}
+          # PRの差分を取得して変数に格納
+          PR_DIFF=$(gh pr diff ${{ github.event.pull_request.number }})
+
+          # 非対話モード (-p / --prompt) で Copilot CLI を呼び出す
+          copilot -p "以下のPR差分を分析し，セキュリティ上の問題点や改善提案を簡潔に列挙してください．
+          
+          ---
+          $PR_DIFF" \
+          --allow-tool='shell(*)'
 
   copilot-custom-prompt:
     runs-on: ubuntu-latest
