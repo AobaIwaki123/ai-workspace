@@ -2,7 +2,7 @@
 
 このリポジトリには、GitHub ActionsからGitHub Copilotを呼び出す様々な例が含まれています。
 
-## ワークフロー
+## ワークフロー (ルート `.github/workflows/`)
 
 ### 1. 基本的なCopilot CI (`.github/workflows/copilot-ci.yml`)
 
@@ -15,7 +15,7 @@
 - `/copilot <prompt>` コメントへの自動応答
 - 変更ファイルごとの改善提案
 
-## ヘルパースクリプト (`scripts/copilot-ci.sh`)
+## ヘルパースクリプト (ルート `scripts/copilot-ci.sh`)
 
 ローカルやCI内で簡単にCopilotを呼び出せるCLIツール。
 
@@ -95,3 +95,7 @@ permissions:
 - `gh copilot` は GitHub Copilot サブスクリプションが必要
 - API制限あり（分あたりのリクエスト数）
 - PRコメントへの応答は `issue_comment` イベントでトリガー
+
+## Workspace構成
+
+詳細な規約・設計は [`copilot-ci/`](copilot-ci/) を参照
