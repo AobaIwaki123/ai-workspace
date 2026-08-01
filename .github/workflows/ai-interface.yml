@@ -1,27 +1,25 @@
-# https://github.com/actions/ai-inference
 name: AI inference
-on: push
+on: workflow_dispatch
 
 jobs:
   inference:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@v6
 
       - name: Install Copilot CLI
         run: npm install -g @github/copilot
 
       - name: Run AI Inference via Copilot
         id: inference
-        uses: actions/ai-inference@2c43c91ae16266ca159d311430343c67a5ffa222 # v3
+        uses: actions/ai-inference@v1
         with:
           prompt: Summarize the latest changes in this repository.
           model: gpt-4.1
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
-          ACTIONS_STEP_DEBUG: true
 
       - name: Print output
         run: echo "${{ steps.inference.outputs.response }}"
