@@ -1,0 +1,78 @@
+name: Copilot PR Assistant
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  copilot-assistant:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup GitHub CLI
+        uses: actions/setup-github-cli@v2
+
+      - name: Install Copilot CLI
+        run: gh extension install github/gh-copilot
+
+      - name: Generate PR description
+        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # PRの変更内容を取得
+          DIFF=$(git diff origin/${{ github.base_ref }}...HEAD --stat)
+          
+          # CopilotにPR説明を生成させる
+          gh copilot suggest -t shell \
+            "Write a concise PR description for these changes: $DIFF" \
+            --repo ${{ github.repository }} \
+            --pr ${{ github.event.pull_request.number }} \
+            | tee pr-description.txt
+          
+          # PR説明を更新
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --body "$(cat pr-description.txt)"
+
+      - name: Respond to /copilot command in comments
+        if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '/copilot')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PROMPT=$(echo "${{ github.event.comment.body }}" | sed 's/.*\/copilot //')
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          
+          # Copilotに回答させる
+          RESPONSE=$(gh copilot suggest -t shell "$PROMPT" --repo ${{ github.repository }})
+          
+          # コメントで回答
+          gh pr comment $ISSUE_NUMBER --body "## 🤖 Copilot Response\n\n$RESPONSE"
+
+      - name: Suggest code improvements
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 変更されたファイルを取得
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          for file in $FILES; do
+            if [[ "$file" == *.py ]] || [[ "$file" == *.js ]] || [[ "$file" == *.ts ]] || [[ "$file" == *.go ]]; then
+              echo "Analyzing $file..."
+              gh copilot suggest -t shell \
+                "Review this code for improvements: $(cat $file)" \
+                --repo ${{ github.repository }} \
+                --pr ${{ github.event.pull_request.number }} \
+                | sed "s/^/[$file] /"
+            fi
+          done
