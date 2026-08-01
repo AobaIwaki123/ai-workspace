@@ -46,3 +46,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh copilot suggest -t shell "${{ github.event.inputs.prompt }}"# test
+# test
