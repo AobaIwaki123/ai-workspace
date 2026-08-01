@@ -1,0 +1,14 @@
+{
+  "name": "ai-workspace",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install",
+    "actions:up": "actions-up",
+    "actions:up:check": "actions-up --dry-run",
+    "actions:up:apply": "actions-up --yes"
+  },
+  "devDependencies": {
+    "husky": "^9.0.0",
+    "actions-up": "^1.0.0"
+  }
+}
