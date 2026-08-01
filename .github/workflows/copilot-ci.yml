@@ -20,9 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup GitHub CLI
-        uses: actions/setup-github-cli@v2
-
       - name: Install Copilot CLI extension
         run: gh extension install github/gh-copilot
 
@@ -40,9 +37,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup GitHub CLI
-        uses: actions/setup-github-cli@v2
 
       - name: Install Copilot CLI extension
         run: gh extension install github/gh-copilot

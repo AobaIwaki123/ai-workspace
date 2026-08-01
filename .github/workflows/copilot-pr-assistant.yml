@@ -19,9 +19,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup GitHub CLI
-        uses: actions/setup-github-cli@v2
-
       - name: Install Copilot CLI
         run: gh extension install github/gh-copilot
 
