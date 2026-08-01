@@ -1,4 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npx lint-staged
+# Check if any workflow files are staged
+if git diff --cached --name-only -- '*.yml' '*.yaml' | grep -q '^\.github/'; then
+  echo "Workflow files changed, running actions-up --dry-run..."
+  npx actions-up --dry-run --quiet
+fi

@@ -21,6 +21,7 @@ jobs:
           model: gpt-4.1
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
+          ACTIONS_STEP_DEBUG: true
 
       - name: Print output
         run: echo "${{ steps.inference.outputs.response }}"

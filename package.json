@@ -8,7 +8,7 @@
     "actions:up:apply": "actions-up --yes"
   },
   "devDependencies": {
-    "husky": "^9.0.0",
-    "actions-up": "^1.0.0"
+    "actions-up": "^1.0.0",
+    "husky": "^9.0.0"
   }
 }

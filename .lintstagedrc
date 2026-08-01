@@ -1,8 +1,0 @@
-{
-  "*.yml": [
-    "actions-up --dry-run --quiet"
-  ],
-  "*.yaml": [
-    "actions-up --dry-run --quiet"
-  ]
-}
