@@ -1,5 +1,5 @@
 name: AI inference
-on: workflow_dispatch
+on: push
 
 jobs:
   inference:
