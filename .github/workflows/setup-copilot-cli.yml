@@ -1,0 +1,28 @@
+name: GitHub Copilot CLI in CI
+
+on:
+  push
+
+jobs:
+  copilot-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Run Copilot CLI
+        env:
+          # Fine-grained PAT (Copilot Requests 権限付き) をセット
+          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+        run: |
+          # コマンドライン引数で直接指示を渡して実行する例
+          copilot --prompt "コード全体を検証し、Potentialなバグがないかチェックしてください"
