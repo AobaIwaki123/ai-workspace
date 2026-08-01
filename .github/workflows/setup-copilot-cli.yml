@@ -25,4 +25,4 @@ jobs:
           GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}
         run: |
           # コマンドライン引数で直接指示を渡して実行する例
-          copilot --prompt "コード全体を検証し、Potentialなバグがないかチェックしてください"
+          copilot --allow-all-tools --prompt "コード全体を検証し、Potentialなバグがないかチェックしてください"
