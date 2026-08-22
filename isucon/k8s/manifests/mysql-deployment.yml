@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql
+  name: isucon-mysql
   namespace: isucon
   labels:
-    app: mysql
+    app: isucon-mysql
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mysql
+      app: isucon-mysql
   template:
     metadata:
       labels:
-        app: mysql
+        app: isucon-mysql
     spec:
       containers:
         - name: mysql
@@ -52,25 +52,9 @@ spec:
       volumes:
         - name: mysql-cnf
           configMap:
-            name: mysql-cnf
+            name: isucon-mysql-cnf
         - name: mysql-initdb
           configMap:
-            name: mysql-initdb
+            name: isucon-mysql-initdb
         - name: mysql-logs
           emptyDir: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mysql
-  namespace: isucon
-  labels:
-    app: mysql
-spec:
-  type: ClusterIP
-  ports:
-    - port: 3306
-      targetPort: 3306
-      name: mysql
-  selector:
-    app: mysql

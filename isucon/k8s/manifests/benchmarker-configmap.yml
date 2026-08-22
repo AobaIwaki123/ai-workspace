@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: benchmarker-script
+  name: isucon-benchmarker-script
   namespace: isucon
 data:
   bench.sh: |
     #!/bin/sh
     set -e
-    TARGET_URL="${1:-http://nginx.isucon.svc.cluster.local}"
+    TARGET_URL="${1:-http://isucon-nginx.isucon.svc.cluster.local}"
     DURATION_SEC="${2:-10}"
     CONCURRENCY=5
 
@@ -54,7 +54,7 @@ data:
         echo "${ok_count},${ng_count}" > "/tmp/bench_res_${worker_id}.txt"
     }
 
-    # ワーカー並行実行
+    # 並行実行
     i=1
     while [ $i -le $CONCURRENCY ]; do
         run_worker $i &
@@ -86,3 +86,26 @@ data:
     echo "QPS: ${QPS} req/sec"
     echo "🏆 スコア: ${SCORE}"
     echo "=========================================="
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: isucon-benchmarker
+  namespace: isucon
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: benchmarker
+          image: curlimages/curl:latest
+          command: ["/bin/sh", "/scripts/bench.sh", "http://isucon-nginx.isucon.svc.cluster.local", "10"]
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: isucon-benchmarker-script
+            defaultMode: 0755

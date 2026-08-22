@@ -4,16 +4,18 @@ metadata:
   name: isucon-ingress
   namespace: isucon
   annotations:
-    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
 spec:
+  ingressClassName: "cloudflare-tunnel"
   rules:
-    - host: isucon.local
+    - host: isucon.aooba.net
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: nginx
+                name: isucon-nginx
                 port:
                   number: 80

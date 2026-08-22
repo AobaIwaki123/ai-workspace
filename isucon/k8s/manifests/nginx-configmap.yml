@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: nginx-conf
+  name: isucon-nginx-conf
   namespace: isucon
 data:
   nginx.conf: |
@@ -41,7 +41,7 @@ data:
         keepalive_timeout 65;
 
         upstream app {
-            server app:8000;
+            server isucon-app:8000;
             keepalive 32;
         }
 

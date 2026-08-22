@@ -1,93 +1,86 @@
 # Kubernetes クラスタで動かす ISUCON サンドボックスガイド (11_k8s_sandbox_guide.md)
 
-お持ちの Kubernetes（k8s）クラスタに ISUCON 模擬環境（Nginx + Go App + MySQL + Benchmarker）をデプロイし、**チームメンバーや外部の人が誰でも自由にアクセス・測定・ベンチマークを実行できる環境**を構築するガイドです。
+`~/journee/k8s/` の GitOps / ArgoCD / Ingress 運用設計をベースに、お持ちの Kubernetes クラスタに ISUCON 模擬環境（Nginx + Go App + MySQL + Benchmarker）をデプロイし、**チームメンバーや外部の人が誰でも自由にアクセス・測定・ベンチマークを実行できる環境**を構築するガイドです。
 
 ---
 
-## 🏛️ Kubernetes 上のアーキテクチャ
+## 🏛️ ディレクトリ構成 (journee-style)
 
-```mermaid
-graph TD
-    Client[外部ユーザー / ブラウザ] -->|NodePort: 30080 / Ingress| NginxSvc[Service: nginx]
-    NginxSvc --> NginxPod[Pod: nginx (LTSVログ)]
-    NginxPod --> AppSvc[Service: app]
-    AppSvc --> AppPod[Pod: app-go (:8000 / :6060 pprof)]
-    AppPod --> MySQLSvc[Service: mysql]
-    MySQLSvc --> MySQLPod[Pod: mysql (スローログ)]
-
-    BenchJob[Job: isucon-benchmarker] -->|ClusterIP 経由で負荷生成| NginxSvc
+```
+isucon/k8s/
+├── README.md                     # デプロイ手順書
+├── Makefile                      # 測定・ベンチマーク実行ヘルパー
+├── argocd/
+│   └── app.yml                   # ArgoCD Application マニフェスト (isucon-dev)
+├── manifests/
+│   ├── kustomization.yml         # Kustomize エントリポイント
+│   ├── app-deployment.yml        # Go アプリ Deployment
+│   ├── app-service.yml           # Go アプリ Service (:8000, :6060 pprof)
+│   ├── mysql-configmap.yml       # my.cnf (スローログ) & 00_schema.sql (初期データ)
+│   ├── mysql-deployment.yml      # MySQL 8.0 Deployment
+│   ├── mysql-service.yml         # MySQL Service (:3306)
+│   ├── nginx-configmap.yml       # nginx.conf (LTSVログ)
+│   ├── nginx-deployment.yml      # Nginx Deployment
+│   ├── nginx-service.yml         # Nginx Service (:80)
+│   ├── ingress.yml               # Ingress (cloudflare-tunnel, isucon.aooba.net)
+│   └── benchmarker-configmap.yml # bench.sh スクリプト & Benchmarker Job
+└── scripts/
+    └── create-branch-infra.sh    # ブランチ/ユーザー別個別環境の自動生成スクリプト
 ```
 
 ---
 
-## 🚀 クイックスタート手順
+## 🚀 デプロイ手順
 
-### 1. アプリイメージのビルド
+### 1. 手動デプロイ (kubectl / Kustomize)
 ```bash
 cd isucon/k8s
-make build-image
-```
-> [!NOTE]
-> - `kind` をお使いの場合: `kind load docker-image isucon-app:latest`
-> - `minikube` をお使いの場合: `minikube image load isucon-app:latest`
-> - リモートクラスタ（EKS, GKE, オンプレ等）の場合: お手持ちのContainer Registryにプッシュし、`app/deployment.yaml` の `image` を更新してください。
-
-### 2. クラスタへのデプロイ
-```bash
 make deploy
 ```
-Namespace `isucon` が作成され、MySQL（初期データ自動投入）、Go App、Nginx が起動します。
 
-### 3. 稼働状態の確認
+### 2. ArgoCD による継続的デプロイ (GitOps)
 ```bash
-make status
+argocd app create -f isucon/k8s/argocd/app.yml --upsert
+argocd app sync isucon-dev
 ```
 
 ---
 
 ## 🏎️ ベンチマーク & 測定ツールの実行
 
-### ① クラスタ内ベンチマーク実行 (`make bench`)
-Kubernetes Job（`isucon-benchmarker`）がクラスタ内から高速に並行負荷を生成し、リアルタイムでスコアを集計・表示します。
+付属の `Makefile` からワンコマンドで測定できます。
 
 ```bash
+cd isucon/k8s
+
+# ① ベンチマークJobを実行 (リアルタイムログ追従 & スコア表示)
 make bench
-```
 
-### ② Nginx アクセスログ集計 (`make alp`)
-Podから直接アクセスログを取得して `alp` で重いエンドポイントを特定します。
-
-```bash
+# ② Nginx アクセスログ集計 (alp で合計時間ワーストを特定)
 make alp
-```
 
-### ③ MySQL スロークエリ集計 (`make slow`)
-MySQL Pod内のスロークエリログを取得して `pt-query-digest` で解析します。
-
-```bash
+# ③ MySQL スロークエリ集計 (pt-query-digest で重いSQLを特定)
 make slow
-```
 
-### ④ pprof プロファイラへのアクセス (`make pprof`)
-ローカルマシンからポートフォワードし、ブラウザで FlameGraph を閲覧できます。
-
-```bash
+# ④ pprof による FlameGraph 可視化
 make pprof
 # ブラウザで http://localhost:6060/debug/pprof/ を開く
 ```
 
 ---
 
-## 👥 チームマルチプレイ（メンバーごとの個人環境の量産）
+## 👥 ブランチ・メンバーごとの個別環境量産
 
-Kustomize の `namespace` を変更することで、**1つのクラスタ上にメンバーごとの完全分離環境（例: `isucon-alice`, `isucon-bob`）を瞬時に作成**できます。
+チームメンバー（例: `alice`, `bob`）が独立してチューニング・ベンチマークを行いたい場合、以下のスクリプトで専用のマニフェストと ArgoCD 設定を生成できます。
 
 ```bash
-# メンバー A 専用の環境を作成
-kubectl create namespace isucon-alice
-kubectl apply -k . -n isucon-alice
+# メンバー "alice" 用の環境を作成
+./isucon/k8s/scripts/create-branch-infra.sh alice
 
-# メンバー A の環境でベンチマーク
-kubectl apply -f benchmark/job.yaml -n isucon-alice
+# 生成された専用マニフェストをデプロイ
+kubectl apply -k isucon/k8s/manifests-alice/
+# または ArgoCD で登録
+argocd app create -f isucon/k8s/argocd-alice/app.yml --upsert
 ```
-これにより、3人が互いのコード変更やDBデータを壊すことなく、各自のペースでチューニング演習を行えます！
+
+これにより、`isucon-alice.aooba.net` のような専用ホスト名で各自が自由に検証できます！

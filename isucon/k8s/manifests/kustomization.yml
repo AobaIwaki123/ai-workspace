@@ -1,0 +1,11 @@
+resources:
+  - mysql-configmap.yml
+  - mysql-deployment.yml
+  - mysql-service.yml
+  - app-deployment.yml
+  - app-service.yml
+  - nginx-configmap.yml
+  - nginx-deployment.yml
+  - nginx-service.yml
+  - ingress.yml
+  - benchmarker-configmap.yml
