@@ -31,12 +31,20 @@ AIと協業するためのワークスペース
 5. **意思決定の記録 (`adr/`)**: 設計方針や採用技術の選定理由を `adr/` に記録。
 6. **スクリプト化 (`scripts/`)**: 再現可能な実行コードやツールを `scripts/` に整備。汎用性の高いものは `.agents/skills/` への昇格を検討。
 
-# Git Worktree 開発運用ルール
+# Git & Pull Request 運用ルール (PR-Only Workflow)
 
-- 本リポジトリでのタスク作業は、ブランチの競合を防ぎ並行作業を安全に行うため、原則として **Git Worktree**（`.worktrees/<branch-name>`）を作成して行います。
-- **ルート作業領域（`main` ブランチ）での直接作業・コミットは禁止**します。すべての変更はワークツリーでブランチを切り、Pull Request（PR）を作成してマージします。
-- Worktree 間で共有したいファイル（環境変数 `.env`、共通データ等）は、ルートの **`.shared/`** ディレクトリ（`.gitignore` 対象）に配置し、シンボリックリンク等で参照します。
-- 操作には `git-worktree` スキル（`./.agents/skills/git-worktree/scripts/worktree.sh`）を活用します。
+- **すべてのリポジトリ（`ai-workspace` および作成した全プロジェクト）において、`main` ブランチへの直接作業・直接コミット・直接 Push は例外なく禁止**します。
+- 軽微な修正（CI修正、ドキュメント更新、リファクタ等）であっても、必ずトピックブランチを作成し、**Pull Request（PR）を作成して CI の通過を完了条件**とします。
+- **エージェントによる自律的な PR のマージ・クローズは禁止**します。マージ判断・レビューはユーザーが行います。
+- 運用の詳細は **`.agents/rules/pr-workflow.md`** を必ず遵守します。
+- 本リポジトリ（`ai-workspace`）での作業は、原則として **Git Worktree**（`.worktrees/<branch-name>`）を作成して行い、`git-worktree` スキルを活用します。
+- 複数ステップの開発を行う場合は `stacked-pr` スキルを活用して積み上げ型 PR を作成します。
+- ドキュメント（README、ROADMAP等）では原則として絵文字を使用しません。
+
+# CI / Go / OpenAPI 開発・トラブルシューティング知見 (CI Best Practices)
+
+- CI（GitHub Actions）の構築、Go バージョン固定、OpenAPI コード生成、Linter 対策において過去に得られた知見と失敗防止策は **`.agents/rules/ci-troubleshooting.md`** に集約しています。
+- 新規リポジトリ作成時や CI 修正時は、本知見を参照してローカル完全検証（`scripts/verify-all.sh`）を徹底します。
 
 # 人間に対する信頼性・透明性担保 (Human-Centric Transparency)
 
