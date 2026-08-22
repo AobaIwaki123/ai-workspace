@@ -77,6 +77,9 @@ make pprof
 # メンバー "alice" 用の環境を作成
 ./isucon/k8s/scripts/create-branch-infra.sh alice
 
+# Namespace 作成
+kubectl create namespace isucon-alice --dry-run=client -o yaml | kubectl apply -f -
+
 # 生成された専用マニフェストをデプロイ
 kubectl apply -k isucon/k8s/manifests-alice/
 # または ArgoCD で登録

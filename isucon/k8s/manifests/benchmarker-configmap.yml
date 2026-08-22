@@ -35,8 +35,10 @@ data:
                 ng_count=$((ng_count + 1))
             fi
 
-            # 2. 投稿詳細取得
-            post_id=$(( (RANDOM % 20) + 1 ))
+            # 2. 投稿詳細取得 (1〜20の投稿IDをPOSIX互換で乱数生成)
+            rand_val=$(od -An -N2 -i /dev/urandom 2>/dev/null | tr -d ' ' || echo "$$")
+            post_id=$(( (rand_val % 20) + 1 ))
+            if [ "$$post_id" -le 0 ]; then post_id=1; fi
             if curl -s -f --max-time 3 --connect-timeout 2 "${TARGET_URL}/api/posts/${post_id}" > /dev/null; then
                 ok_count=$((ok_count + 1))
             else
