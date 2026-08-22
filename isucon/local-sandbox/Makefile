@@ -4,7 +4,7 @@
 
 ALP_MATCH := "/api/posts/[0-9]+"
 
-.PHONY: help up down restart logs bench clean-logs alp slow pprof status
+.PHONY: help up down restart logs bench clean-logs alp slow pprof status measure
 
 help:
 	@echo "ISUCON ローカル測定ハンズオン コマンド一覧:"
@@ -12,6 +12,7 @@ help:
 	@echo "  make down        - ローカル環境の停止・削除"
 	@echo "  make restart     - コンテナの再起動"
 	@echo "  make bench       - 模擬ベンチマークの実行 (10秒間負荷生成)"
+	@echo "  make measure     - ⭐ bench + alp + slow を一発実行 & 結果保存 & 前回比較"
 	@echo "  make clean-logs  - Nginx & MySQL ログのクリア"
 	@echo "  make alp         - alpによるNginxアクセスログ集計 (sum降順)"
 	@echo "  make slow        - pt-query-digestによるMySQLスロークエリ集計"
@@ -23,7 +24,7 @@ up:
 	docker compose up -d --build
 	@echo "==> サービス起動完了。MySQLの初期データ投入を待機しています..."
 	@sleep 5
-	@echo "==> 準備完了: http://localhost (Nginx) / http://localhost:6060/debug/pprof/ (pprof)"
+	@echo "==> 準備完了: http://localhost:8080 (Nginx) / http://localhost:6060/debug/pprof/ (pprof)"
 
 down:
 	docker compose down -v
@@ -39,7 +40,7 @@ clean-logs:
 	@echo "==> ログクリア完了！"
 
 bench: clean-logs
-	@./benchmark/bench.sh http://localhost:80 10
+	@./benchmark/bench.sh http://localhost:8080 10
 
 alp:
 	@if command -v alp > /dev/null; then \
@@ -63,3 +64,6 @@ pprof:
 
 status:
 	docker compose ps
+
+measure:
+	@./benchmark/measure.sh http://localhost:8080 10

@@ -1,0 +1,5 @@
+# ローカル計測結果（タイムスタンプ付きで蓄積）
+results/
+
+# Docker Compose ログ出力先
+logs/
