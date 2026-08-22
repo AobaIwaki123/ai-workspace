@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: isucon
+  labels:
+    app: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "root"
+            - name: MYSQL_DATABASE
+              value: "isucon"
+            - name: MYSQL_USER
+              value: "isucon"
+            - name: MYSQL_PASSWORD
+              value: "isucon"
+          ports:
+            - containerPort: 3306
+              name: mysql
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          volumeMounts:
+            - name: mysql-cnf
+              mountPath: /etc/mysql/conf.d
+            - name: mysql-initdb
+              mountPath: /docker-entrypoint-initdb.d
+            - name: mysql-logs
+              mountPath: /var/log/mysql
+          readinessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "localhost", "-u", "isucon", "-pisucon"]
+            initialDelaySeconds: 5
+            periodSeconds: 3
+      volumes:
+        - name: mysql-cnf
+          configMap:
+            name: mysql-cnf
+        - name: mysql-initdb
+          configMap:
+            name: mysql-initdb
+        - name: mysql-logs
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: isucon
+  labels:
+    app: mysql
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3306
+      targetPort: 3306
+      name: mysql
+  selector:
+    app: mysql

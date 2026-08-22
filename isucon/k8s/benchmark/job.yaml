@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: isucon-benchmarker
+  namespace: isucon
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: benchmarker
+          image: curlimages/curl:latest
+          command: ["/bin/sh", "/scripts/bench.sh", "http://nginx.isucon.svc.cluster.local", "10"]
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: benchmarker-script
+            defaultMode: 0755
