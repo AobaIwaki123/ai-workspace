@@ -11,6 +11,12 @@ AIと協業するためのワークスペース
 3. ある程度まとまった調査ができたらnote/にまとめる
 4. 洗練されたnoteはadr/にまとめる
 
+# Git Worktree 開発運用ルール
+
+- 本リポジトリでのタスク作業は、ブランチの競合を防ぎ並行作業を安全に行うため、原則として **Git Worktree**（`.worktrees/<branch-name>`）を作成して行います。
+- Worktree 間で共有したいファイル（環境変数 `.env`、共通データ等）は、ルートの **`.shared/`** ディレクトリ（`.gitignore` 対象）に配置し、シンボリックリンク等で参照します。
+- 操作には `git-worktree` スキル（`./.agents/skills/git-worktree/scripts/worktree.sh`）を活用します。
+
 # 権限・セキュリティ設定 (Permissions)
 
 - プロジェクト共通の許可・禁止ルールは `.agents/settings.json` または `presets/permissions.json` に定義します。
