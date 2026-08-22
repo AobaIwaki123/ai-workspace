@@ -75,3 +75,7 @@ AIと協業するためのワークスペース集
 ### 4. スキル: `auto-allow-command`
 - **目的**: コマンド実行時の許可プロンプトを検知し、安全性を判定した上で Allowlist（`.agents/settings.json` またはグローバル設定）への追加を提案・反映するスキル。
 - **配置**: [`.agents/skills/auto-allow-command/`](.agents/skills/auto-allow-command/)
+
+### 5. スキル: `isucon-sandbox`
+- **目的**: ISUCON模擬環境（ローカルDocker Compose / Kubernetes journee-style GitOps）の自動生成・複製・メンバー別個別環境の量産とログ解析（alp/pt-query/pprof）をワンストップで実行するスキル。
+- **配置**: [`.agents/skills/isucon-sandbox/`](.agents/skills/isucon-sandbox/)
