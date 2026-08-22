@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"embed"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -16,6 +18,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
+
+//go:embed public/*
+var publicFS embed.FS
 
 var db *sqlx.DB
 
@@ -186,6 +191,11 @@ func main() {
 	mux.HandleFunc("/api/posts", handleGetPosts)
 	mux.HandleFunc("/api/posts/", handleGetPostDetail)
 	mux.HandleFunc("/api/heavy-calc", handleHeavyCalc)
+
+	// 静的フロントエンド配信 (index.html)
+	if subFS, err := fs.Sub(publicFS, "public"); err == nil {
+		mux.Handle("/", http.FileServer(http.FS(subFS)))
+	}
 
 	server := &http.Server{
 		Addr:    ":8000",

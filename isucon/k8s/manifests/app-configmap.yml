@@ -33,8 +33,10 @@ data:
 
     import (
     	"database/sql"
+    	"embed"
     	"encoding/json"
     	"fmt"
+    	"io/fs"
     	"log"
     	"net/http"
     	_ "net/http/pprof"
@@ -47,6 +49,9 @@ data:
     	_ "github.com/go-sql-driver/mysql"
     	"github.com/jmoiron/sqlx"
     )
+
+    //go:embed public/*
+    var publicFS embed.FS
 
     var db *sqlx.DB
 
@@ -218,6 +223,11 @@ data:
     	mux.HandleFunc("/api/posts/", handleGetPostDetail)
     	mux.HandleFunc("/api/heavy-calc", handleHeavyCalc)
 
+    	// 静的フロントエンド配信 (index.html)
+    	if subFS, err := fs.Sub(publicFS, "public"); err == nil {
+    		mux.Handle("/", http.FileServer(http.FS(subFS)))
+    	}
+
     	server := &http.Server{
     		Addr:    ":8000",
     		Handler: mux,
@@ -228,3 +238,255 @@ data:
     		log.Fatalf("Server error: %v", err)
     	}
     }
+
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🚀 ISUCON 模擬プラットフォーム</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+            body { font-family: 'Inter', sans-serif; }
+            code, pre { font-family: 'JetBrains Mono', monospace; }
+        </style>
+    </head>
+    <body class="bg-slate-950 text-slate-100 min-h-screen">
+        <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center shadow-lg shadow-rose-500/20">
+                        <i data-lucide="zap" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                            ISUCON Sandbox
+                        </h1>
+                        <p class="text-xs text-slate-400">Kubernetes & Local Performance Lab</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="health-badge">System Healthy</span>
+                    </div>
+                    <a href="/debug/pprof/" target="_blank" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition">
+                        <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
+                        <span>pprof</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <section class="mb-8 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-850 border border-slate-800 p-6 shadow-xl relative overflow-hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="gauge" class="w-5 h-5 text-rose-400"></i>
+                            リアルタイム API パフォーマンス計測
+                        </h2>
+                        <p class="text-sm text-slate-400 mt-1">
+                            現在のバックエンド API をブラウザから直接リクエストし、レイテンシとボトルネックを可視化します。
+                        </p>
+                    </div>
+                    <button id="btn-measure" onclick="runPerformanceTest()" class="flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-semibold shadow-lg shadow-rose-500/25 transition transform active:scale-95 cursor-pointer">
+                        <i data-lucide="play" class="w-4 h-4"></i>
+                        <span>⚡ 一括測定を実行</span>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4 relative group hover:border-slate-700 transition">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">GET /api/posts</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-medium">🔴 N+1 発生中</span>
+                        </div>
+                        <div class="text-2xl font-bold font-mono text-white mt-2" id="metric-posts">- ms</div>
+                        <p class="text-xs text-slate-400 mt-1">投稿一覧 + ユーザー・コメント個別クエリ</p>
+                    </div>
+                    <div class="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4 relative group hover:border-slate-700 transition">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">GET /api/posts/1</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">🟢 単一投稿</span>
+                        </div>
+                        <div class="text-2xl font-bold font-mono text-white mt-2" id="metric-detail">- ms</div>
+                        <p class="text-xs text-slate-400 mt-1">投稿詳細 + コメントリスト取得</p>
+                    </div>
+                    <div class="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4 relative group hover:border-slate-700 transition">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">GET /api/heavy-calc</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">🟡 CPU 負荷</span>
+                        </div>
+                        <div class="text-2xl font-bold font-mono text-white mt-2" id="metric-calc">- ms</div>
+                        <p class="text-xs text-slate-400 mt-1">ループ内正規表現 5,000回 コンパイル</p>
+                    </div>
+                </div>
+            </section>
+            <section>
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="message-square" class="w-5 h-5 text-indigo-400"></i>
+                            投稿フィード (タイムライン)
+                        </h2>
+                        <p class="text-sm text-slate-400">MySQL データベースから取得した投稿一覧です。</p>
+                    </div>
+                    <button onclick="fetchPosts()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition cursor-pointer">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        <span>再読み込み</span>
+                    </button>
+                </div>
+                <div id="posts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="col-span-full py-16 text-center text-slate-500 flex flex-col items-center justify-center">
+                        <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-rose-500 mb-3"></i>
+                        <p class="text-sm">投稿データを取得中...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <div id="post-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+                <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+                    <h3 id="modal-title" class="text-lg font-bold text-white">投稿詳細</h3>
+                    <button onclick="closeModal()" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto space-y-6">
+                    <div>
+                        <div class="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                            <span id="modal-author" class="font-semibold text-slate-200">ユーザー名</span>
+                            <span>•</span>
+                            <span id="modal-date">日時</span>
+                        </div>
+                        <p id="modal-content" class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap"></p>
+                    </div>
+                    <div class="border-t border-slate-800 pt-4">
+                        <h4 class="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-indigo-400"></i>
+                            コメント (<span id="modal-comment-count">0</span>)
+                        </h4>
+                        <div id="modal-comments" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                lucide.createIcons();
+                fetchPosts();
+                checkHealth();
+            });
+            async function checkHealth() {
+                try {
+                    const res = await fetch('/health');
+                    if (res.ok) document.getElementById('health-badge').textContent = 'System Healthy (200 OK)';
+                } catch (e) {
+                    document.getElementById('health-badge').textContent = 'API Unavailable';
+                }
+            }
+            async function fetchPosts() {
+                const container = document.getElementById('posts-container');
+                container.innerHTML = `<div class="col-span-full py-16 text-center text-slate-500 flex flex-col items-center justify-center"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-rose-500 mb-3"></i><p class="text-sm">投稿データを取得中...</p></div>`;
+                lucide.createIcons();
+                const start = performance.now();
+                try {
+                    const res = await fetch('/api/posts');
+                    document.getElementById('metric-posts').textContent = `${Math.round(performance.now() - start)} ms`;
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const posts = await res.json();
+                    if (!posts || posts.length === 0) {
+                        container.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500">投稿がありません。</div>`;
+                        return;
+                    }
+                    container.innerHTML = posts.map(post => `
+                        <div onclick="openPostModal(${post.id})" class="bg-slate-900/70 hover:bg-slate-850 border border-slate-800/80 hover:border-slate-700 rounded-xl p-5 flex flex-col justify-between transition cursor-pointer group shadow-lg">
+                            <div>
+                                <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                                    <span class="font-medium text-slate-300 flex items-center gap-1.5"><i data-lucide="user" class="w-3.5 h-3.5 text-indigo-400"></i>${post.user_name || `User #${post.user_id}`}</span>
+                                    <span>${new Date(post.created_at).toLocaleDateString('ja-JP')}</span>
+                                </div>
+                                <h3 class="font-bold text-white group-hover:text-rose-400 transition mb-2 text-base line-clamp-1">${escapeHtml(post.title)}</h3>
+                                <p class="text-xs text-slate-400 line-clamp-3 leading-relaxed mb-4">${escapeHtml(post.content)}</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs text-slate-400">
+                                <span class="flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5 text-slate-500"></i>${post.view_count} views</span>
+                                <span class="flex items-center gap-1 text-indigo-400 font-medium"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>${post.comment_count || 0} 件</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    lucide.createIcons();
+                } catch (err) {
+                    container.innerHTML = `<div class="col-span-full py-12 text-center text-rose-400"><i data-lucide="alert-triangle" class="w-8 h-8 mx-auto mb-2 text-rose-500"></i><p class="text-sm">データの読み込みに失敗しました: ${err.message}</p></div>`;
+                    lucide.createIcons();
+                }
+            }
+            async function openPostModal(postId) {
+                const modal = document.getElementById('post-modal');
+                modal.classList.remove('hidden');
+                document.getElementById('modal-title').textContent = '読み込み中...';
+                document.getElementById('modal-content').textContent = '';
+                document.getElementById('modal-comments').innerHTML = '<p class="text-xs text-slate-500">コメントを読み込み中...</p>';
+                const start = performance.now();
+                try {
+                    const res = await fetch(`/api/posts/${postId}`);
+                    document.getElementById('metric-detail').textContent = `${Math.round(performance.now() - start)} ms`;
+                    if (!res.ok) throw new Error('Not found');
+                    const data = await res.json();
+                    const post = data.post;
+                    const comments = data.comments || [];
+                    document.getElementById('modal-title').textContent = post.title;
+                    document.getElementById('modal-author').textContent = post.user_name || `User #${post.user_id}`;
+                    document.getElementById('modal-date').textContent = new Date(post.created_at).toLocaleString('ja-JP');
+                    document.getElementById('modal-content').textContent = post.content;
+                    document.getElementById('modal-comment-count').textContent = comments.length;
+                    if (comments.length === 0) {
+                        document.getElementById('modal-comments').innerHTML = '<p class="text-xs text-slate-500">コメントはまだありません。</p>';
+                    } else {
+                        document.getElementById('modal-comments').innerHTML = comments.map(c => `
+                            <div class="bg-slate-950/50 rounded-lg p-3 border border-slate-800/60 text-xs">
+                                <div class="flex items-center justify-between text-slate-400 mb-1">
+                                    <span class="font-medium text-slate-300">User #${c.user_id}</span>
+                                    <span class="text-[10px]">${new Date(c.created_at).toLocaleTimeString('ja-JP')}</span>
+                                </div>
+                                <p class="text-slate-300 leading-relaxed">${escapeHtml(c.body)}</p>
+                            </div>
+                        `).join('');
+                    }
+                } catch (err) {
+                    document.getElementById('modal-title').textContent = 'エラー';
+                    document.getElementById('modal-content').textContent = '詳細の取得に失敗しました。';
+                }
+            }
+            function closeModal() {
+                document.getElementById('post-modal').classList.add('hidden');
+            }
+            async function runPerformanceTest() {
+                const btn = document.getElementById('btn-measure');
+                btn.disabled = true;
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>測定中...</span>`;
+                lucide.createIcons();
+                const t1 = performance.now();
+                await fetch('/api/posts').catch(() => {});
+                document.getElementById('metric-posts').textContent = `${Math.round(performance.now() - t1)} ms`;
+                const t2 = performance.now();
+                await fetch('/api/posts/1').catch(() => {});
+                document.getElementById('metric-detail').textContent = `${Math.round(performance.now() - t2)} ms`;
+                const t3 = performance.now();
+                await fetch('/api/heavy-calc').catch(() => {});
+                document.getElementById('metric-calc').textContent = `${Math.round(performance.now() - t3)} ms`;
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>⚡ 一括測定を実行</span>`;
+                lucide.createIcons();
+            }
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>"']/g, function(m) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+                });
+            }
+        </script>
+    </body>
+    </html>
