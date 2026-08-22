@@ -75,3 +75,11 @@ AIと協業するためのワークスペース集
 ### 4. スキル: `auto-allow-command`
 - **目的**: コマンド実行時の許可プロンプトを検知し、安全性を判定した上で Allowlist（`.agents/settings.json` またはグローバル設定）への追加を提案・反映するスキル。
 - **配置**: [`.agents/skills/auto-allow-command/`](.agents/skills/auto-allow-command/)
+
+### 5. スキル: `stacked-pr`
+- **目的**: 巨大な変更を小さく独立したPRに分割・連鎖して作成（Stacked PR）、親変更時の追従（restack）、Base Branch更新を安全に管理するスキル。
+- **配置**: [`.agents/skills/stacked-pr/`](.agents/skills/stacked-pr/)
+
+### 6. スキル: `isucon-sandbox`
+- **目的**: ISUCON模擬環境（ローカルDocker Compose / Kubernetes journee-style GitOps）の自動生成・複製・メンバー別個別環境の量産とログ解析（alp/pt-query/pprof）をワンストップで実行するスキル。
+- **配置**: [`.agents/skills/isucon-sandbox/`](.agents/skills/isucon-sandbox/)
