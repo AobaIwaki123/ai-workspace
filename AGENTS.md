@@ -23,6 +23,10 @@ AIと協業するためのワークスペース
 - UI、API ツール、ダッシュボード、計測スクリプトを実装する際は、ブラックボックスなモック感を排除し、生データ・実ログ・パラメータ完全同期を提供する **`.agents/rules/ui-transparency.md`** の原則を必ず遵守します。
 - 画面操作が本物のバックエンドに届いていることを人間が独立して検証できるよう、リアルタイムログ監視コマンド（`kubectl logs -f` 等）を必ず提示します。
 
+# システム設計とOSSロードマップレビュー (System Design Review)
+
+- 新規プロジェクト（OSS、CLI、Webサービス等）の立ち上げやロードマップ策定を求められた際は、オーバーエンジニアリングの排除、可観測性（Observability）の担保、外部依存への防衛策などを定めた **`.agents/rules/system-design-review.md`** に基づいて、ベテランエンジニアとしてのレビューを実施します。
+
 # 権限・セキュリティ設定 (Permissions)
 
 - プロジェクト共通の許可・禁止ルールは `.agents/settings.json` または `presets/permissions.json` に定義します。
