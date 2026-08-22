@@ -235,9 +235,18 @@ data:
     		mux.Handle("/", http.FileServer(http.FS(subFS)))
     	}
 
+    	// リクエストログ出力ミドルウェア
+    	loggedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    		start := time.Now()
+    		mux.ServeHTTP(w, r)
+    		if strings.HasPrefix(r.URL.Path, "/api/") || r.URL.Path == "/health" {
+    			log.Printf("📥 [%s] %s -> completed in %v (Remote: %s)", r.Method, r.URL.Path, time.Since(start), r.RemoteAddr)
+    		}
+    	})
+
     	server := &http.Server{
     		Addr:    ":8000",
-    		Handler: mux,
+    		Handler: loggedHandler,
     	}
 
     	log.Println("Starting API server on :8000")
@@ -252,246 +261,386 @@ data:
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🚀 ISUCON 模擬プラットフォーム</title>
+        <title>ISUCON API Inspector & Benchmark Console</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://unpkg.com/lucide@latest"></script>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
             body { font-family: 'Inter', sans-serif; }
-            code, pre { font-family: 'JetBrains Mono', monospace; }
+            code, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
+            .method-get { @apply bg-blue-500/10 text-blue-400 border-blue-500/30; }
+            .method-badge { @apply px-2.5 py-1 rounded-md text-xs font-bold font-mono tracking-wide uppercase; }
         </style>
     </head>
-    <body class="bg-slate-950 text-slate-100 min-h-screen">
-        <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <body class="bg-slate-950 text-slate-200 min-h-screen">
+        <header class="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-50 backdrop-blur">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center shadow-lg shadow-rose-500/20">
-                        <i data-lucide="zap" class="w-6 h-6 text-white"></i>
-                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-mono font-bold text-sm">API</div>
                     <div>
-                        <h1 class="text-lg font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                            ISUCON Sandbox
-                        </h1>
-                        <p class="text-xs text-slate-400">Kubernetes & Local Performance Lab</p>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="text-base font-bold text-white">ISUCON API Inspector & Benchmark Console</h1>
+                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">v1.0.0</span>
+                        </div>
+                        <p class="text-xs text-slate-400 font-mono" id="current-host-label">[Base URL: <span id="base-url-display"></span>]</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span id="health-badge">System Healthy</span>
+                    <div id="system-health-badge" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-800/80 border border-slate-700 text-xs font-mono text-slate-300">
+                        <span class="w-2 h-2 rounded-full bg-slate-500" id="health-dot"></span>
+                        <span id="health-text">Checking...</span>
                     </div>
-                    <a href="/debug/pprof/" target="_blank" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition">
-                        <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
-                        <span>pprof</span>
+                    <a href="/debug/pprof/" target="_blank" class="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-mono transition">
+                        <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                        <span>/debug/pprof/</span>
                     </a>
                 </div>
             </div>
         </header>
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <section class="mb-8 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-850 border border-slate-800 p-6 shadow-xl relative overflow-hidden">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3 text-xs">
+                <div class="flex items-start space-x-3 text-slate-400">
+                    <i data-lucide="info" class="w-4 h-4 text-cyan-400 mt-0.5 shrink-0"></i>
                     <div>
-                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i data-lucide="gauge" class="w-5 h-5 text-rose-400"></i>
-                            リアルタイム API パフォーマンス計測
-                        </h2>
-                        <p class="text-sm text-slate-400 mt-1">
-                            現在のバックエンド API をブラウザから直接リクエストし、レイテンシとボトルネックを可視化します。
-                        </p>
+                        <span class="text-slate-200 font-semibold">実リクエスト透過インスペクター:</span>
+                        ブラウザから実際にバックエンドへ HTTP 通信を飛ばし、レイテンシと生レスポンスを測定します。
                     </div>
-                    <button id="btn-measure" onclick="runPerformanceTest()" class="flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-semibold shadow-lg shadow-rose-500/25 transition transform active:scale-95 cursor-pointer">
-                        <i data-lucide="play" class="w-4 h-4"></i>
-                        <span>⚡ 一括測定を実行</span>
-                    </button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4 relative group hover:border-slate-700 transition">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">GET /api/posts</span>
-                            <span class="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-medium">🔴 N+1 発生中</span>
+                <div class="bg-slate-950 p-3 rounded-lg border border-slate-850 space-y-1.5">
+                    <div class="flex items-center justify-between text-slate-300 font-medium">
+                        <span class="flex items-center gap-1.5 text-emerald-400"><i data-lucide="terminal" class="w-3.5 h-3.5"></i><span>🖥️ ターミナルからバックエンドの実ログをリアルタイム監視する</span></span>
+                        <span class="text-[10px] text-slate-500">ボタンを押すと即座にログが流れます</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] font-mono text-slate-300 pt-1">
+                        <div class="bg-slate-900 px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between">
+                            <span class="text-slate-400">Go App ログ:</span>
+                            <code class="text-amber-300">kubectl logs -f -l app=isucon-app -n isucon</code>
                         </div>
-                        <div class="text-2xl font-bold font-mono text-white mt-2" id="metric-posts">- ms</div>
-                        <p class="text-xs text-slate-400 mt-1">投稿一覧 + ユーザー・コメント個別クエリ</p>
-                    </div>
-                    <div class="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4 relative group hover:border-slate-700 transition">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">GET /api/posts/1</span>
-                            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">🟢 単一投稿</span>
+                        <div class="bg-slate-900 px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between">
+                            <span class="text-slate-400">Nginx LTSV ログ:</span>
+                            <code class="text-amber-300">kubectl logs -f -l app=isucon-nginx -n isucon</code>
                         </div>
-                        <div class="text-2xl font-bold font-mono text-white mt-2" id="metric-detail">- ms</div>
-                        <p class="text-xs text-slate-400 mt-1">投稿詳細 + コメントリスト取得</p>
-                    </div>
-                    <div class="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4 relative group hover:border-slate-700 transition">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">GET /api/heavy-calc</span>
-                            <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">🟡 CPU 負荷</span>
-                        </div>
-                        <div class="text-2xl font-bold font-mono text-white mt-2" id="metric-calc">- ms</div>
-                        <p class="text-xs text-slate-400 mt-1">ループ内正規表現 5,000回 コンパイル</p>
-                    </div>
-                </div>
-            </section>
-            <section>
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i data-lucide="message-square" class="w-5 h-5 text-indigo-400"></i>
-                            投稿フィード (タイムライン)
-                        </h2>
-                        <p class="text-sm text-slate-400">MySQL データベースから取得した投稿一覧です。</p>
-                    </div>
-                    <button onclick="fetchPosts()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition cursor-pointer">
-                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                        <span>再読み込み</span>
-                    </button>
-                </div>
-                <div id="posts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="col-span-full py-16 text-center text-slate-500 flex flex-col items-center justify-center">
-                        <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-rose-500 mb-3"></i>
-                        <p class="text-sm">投稿データを取得中...</p>
-                    </div>
-                </div>
-            </section>
-        </main>
-        <div id="post-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-                <div class="p-6 border-b border-slate-800 flex items-center justify-between">
-                    <h3 id="modal-title" class="text-lg font-bold text-white">投稿詳細</h3>
-                    <button onclick="closeModal()" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-                <div class="p-6 overflow-y-auto space-y-6">
-                    <div>
-                        <div class="flex items-center gap-2 text-xs text-slate-400 mb-2">
-                            <span id="modal-author" class="font-semibold text-slate-200">ユーザー名</span>
-                            <span>•</span>
-                            <span id="modal-date">日時</span>
-                        </div>
-                        <p id="modal-content" class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap"></p>
-                    </div>
-                    <div class="border-t border-slate-800 pt-4">
-                        <h4 class="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                            <i data-lucide="message-circle" class="w-4 h-4 text-indigo-400"></i>
-                            コメント (<span id="modal-comment-count">0</span>)
-                        </h4>
-                        <div id="modal-comments" class="space-y-3"></div>
                     </div>
                 </div>
             </div>
-        </div>
+            <div class="space-y-4">
+                <div class="border border-slate-800 bg-slate-900 rounded-xl overflow-hidden shadow-sm" id="ep-posts">
+                    <div onclick="toggleAccordion('ep-posts')" class="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-850 transition border-b border-transparent group">
+                        <div class="flex items-center space-x-3">
+                            <span class="method-badge method-get">GET</span>
+                            <span class="font-mono text-sm font-bold text-white group-hover:text-blue-400 transition">/api/posts</span>
+                            <span class="text-xs text-slate-400 hidden sm:inline">— 投稿一覧の取得</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-medium">🔴 N+1 ボトルネック (31 Queries)</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-200 accordion-icon"></i>
+                        </div>
+                    </div>
+                    <div class="accordion-content hidden border-t border-slate-800 p-5 bg-slate-950/40 space-y-4">
+                        <div class="bg-slate-900/90 rounded-lg p-3.5 border border-slate-800 space-y-2 text-xs">
+                            <div class="font-semibold text-rose-400 flex items-center gap-1.5"><i data-lucide="database" class="w-3.5 h-3.5"></i><span>バックエンドの SQL 発行構造 (ボトルネック)</span></div>
+                            <div class="font-mono text-[11px] text-slate-300 space-y-1 bg-slate-950 p-2.5 rounded border border-slate-850">
+                                <div class="text-slate-400">1. <span class="text-blue-400">SELECT</span> id, user_id, title... <span class="text-blue-400">FROM</span> posts <span class="text-blue-400">WHERE</span> status = 'published' <span class="text-blue-400">ORDER BY</span> created_at <span class="text-blue-400">DESC LIMIT</span> 30; <span class="text-amber-500/80">(1回)</span></div>
+                                <div class="text-slate-400">2. <span class="text-rose-400">SELECT</span> name <span class="text-rose-400">FROM</span> users <span class="text-rose-400">WHERE</span> id = ?; <span class="text-rose-400 font-bold">(30回ループクエリ / N+1)</span></div>
+                                <div class="text-slate-400">3. <span class="text-rose-400">SELECT COUNT</span>(*) <span class="text-rose-400">FROM</span> comments <span class="text-rose-400">WHERE</span> post_id = ?; <span class="text-rose-400 font-bold">(30回ループクエリ / N+1 & Full Scan)</span></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">測定プリセット</label>
+                                <select id="posts-preset" onchange="syncPreset('posts')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                                    <option value="single">Single (1 req / 1 並行)</option>
+                                    <option value="burst" selected>Standard Burst (20 req / 5 並行)</option>
+                                    <option value="heavy">Heavy Burst (50 req / 10 並行)</option>
+                                    <option value="custom">Custom (カスタム指定)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">総リクエスト数 (Count)</label>
+                                <input type="number" id="posts-count" value="20" min="1" max="100" onchange="setCustomMode('posts')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">並行度 (Concurrency)</label>
+                                <input type="number" id="posts-concurrency" value="5" min="1" max="20" onchange="setCustomMode('posts')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="executeEndpoint('/api/posts', 'posts-count', 'posts-concurrency', 'posts-res')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                                    <span>Execute & Measure</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="posts-res" class="hidden space-y-3">
+                            <div class="metric-summary grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono text-xs"></div>
+                            <div class="raw-response bg-slate-950 rounded-lg p-3 border border-slate-800 font-mono text-xs"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border border-slate-800 bg-slate-900 rounded-xl overflow-hidden shadow-sm" id="ep-detail">
+                    <div onclick="toggleAccordion('ep-detail')" class="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-850 transition border-b border-transparent group">
+                        <div class="flex items-center space-x-3">
+                            <span class="method-badge method-get">GET</span>
+                            <span class="font-mono text-sm font-bold text-white group-hover:text-blue-400 transition">/api/posts/{id}</span>
+                            <span class="text-xs text-slate-400 hidden sm:inline">— 単一投稿詳細 & コメント一覧</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">🟢 単一投稿取得</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-200 accordion-icon"></i>
+                        </div>
+                    </div>
+                    <div class="accordion-content hidden border-t border-slate-800 p-5 bg-slate-950/40 space-y-4">
+                        <div class="bg-slate-900/90 rounded-lg p-3.5 border border-slate-800 space-y-2 text-xs">
+                            <div class="font-semibold text-cyan-400 flex items-center gap-1.5"><i data-lucide="database" class="w-3.5 h-3.5"></i><span>バックエンドの SQL 発行構造</span></div>
+                            <div class="font-mono text-[11px] text-slate-300 space-y-1 bg-slate-950 p-2.5 rounded border border-slate-850">
+                                <div class="text-slate-400">1. <span class="text-blue-400">SELECT</span> * <span class="text-blue-400">FROM</span> posts <span class="text-blue-400">WHERE</span> id = ?; <span class="text-emerald-400">(Primary Key Lookup)</span></div>
+                                <div class="text-slate-400">2. <span class="text-blue-400">SELECT</span> * <span class="text-blue-400">FROM</span> comments <span class="text-blue-400">WHERE</span> post_id = ? <span class="text-blue-400">ORDER BY</span> created_at <span class="text-blue-400">ASC</span>;</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-3 bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">投稿 ID ({id})</label>
+                                <input type="number" id="detail-id" value="1" min="1" max="1000" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">測定プリセット</label>
+                                <select id="detail-preset" onchange="syncPreset('detail')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                                    <option value="single" selected>Single (1 req / 1 並行)</option>
+                                    <option value="burst">Standard Burst (20 req / 5 並行)</option>
+                                    <option value="heavy">Heavy Burst (50 req / 10 並行)</option>
+                                    <option value="custom">Custom (カスタム指定)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">総リクエスト数 (Count)</label>
+                                <input type="number" id="detail-count" value="1" min="1" max="100" onchange="setCustomMode('detail')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">並行度 (Concurrency)</label>
+                                <input type="number" id="detail-concurrency" value="1" min="1" max="20" onchange="setCustomMode('detail')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="executeDetailEndpoint()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                                    <span>Execute & Measure</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="detail-res" class="hidden space-y-3">
+                            <div class="metric-summary grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono text-xs"></div>
+                            <div class="raw-response bg-slate-950 rounded-lg p-3 border border-slate-800 font-mono text-xs"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border border-slate-800 bg-slate-900 rounded-xl overflow-hidden shadow-sm" id="ep-calc">
+                    <div onclick="toggleAccordion('ep-calc')" class="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-850 transition border-b border-transparent group">
+                        <div class="flex items-center space-x-3">
+                            <span class="method-badge method-get">GET</span>
+                            <span class="font-mono text-sm font-bold text-white group-hover:text-blue-400 transition">/api/heavy-calc</span>
+                            <span class="text-xs text-slate-400 hidden sm:inline">— CPU 負荷テスト（正規表現ループ）</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">🟡 CPU ボトルネック (5,000 compiles)</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-200 accordion-icon"></i>
+                        </div>
+                    </div>
+                    <div class="accordion-content hidden border-t border-slate-800 p-5 bg-slate-950/40 space-y-4">
+                        <div class="bg-slate-900/90 rounded-lg p-3.5 border border-slate-800 space-y-2 text-xs">
+                            <div class="font-semibold text-amber-400 flex items-center gap-1.5"><i data-lucide="cpu" class="w-3.5 h-3.5"></i><span>バックエンドの CPU 負荷構造</span></div>
+                            <div class="font-mono text-[11px] text-slate-300 space-y-1 bg-slate-950 p-2.5 rounded border border-slate-850">
+                                <div class="text-slate-400"><span class="text-amber-400">for</span> i := 0; i &lt; 5000; i++ {</div>
+                                <div class="text-slate-400 pl-4">re := <span class="text-rose-400 font-bold">regexp.MustCompile</span>(`(ISUCON|applications|limit)`) <span class="text-rose-400">// 毎回再コンパイル</span></div>
+                                <div class="text-slate-400 pl-4">re.MatchString(text)</div>
+                                <div class="text-slate-400">}</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">測定プリセット</label>
+                                <select id="calc-preset" onchange="syncPreset('calc')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                                    <option value="single">Single (1 req / 1 並行)</option>
+                                    <option value="burst" selected>Standard Burst (20 req / 5 並行)</option>
+                                    <option value="heavy">Heavy Burst (50 req / 10 並行)</option>
+                                    <option value="custom">Custom (カスタム指定)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">総リクエスト数 (Count)</label>
+                                <input type="number" id="calc-count" value="20" min="1" max="100" onchange="setCustomMode('calc')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">並行度 (Concurrency)</label>
+                                <input type="number" id="calc-concurrency" value="5" min="1" max="20" onchange="setCustomMode('calc')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="executeEndpoint('/api/heavy-calc', 'calc-count', 'calc-concurrency', 'calc-res')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                                    <span>Execute & Measure</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="calc-res" class="hidden space-y-3">
+                            <div class="metric-summary grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono text-xs"></div>
+                            <div class="raw-response bg-slate-950 rounded-lg p-3 border border-slate-800 font-mono text-xs"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border border-slate-800 bg-slate-900 rounded-xl overflow-hidden shadow-sm" id="ep-health">
+                    <div onclick="toggleAccordion('ep-health')" class="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-850 transition border-b border-transparent group">
+                        <div class="flex items-center space-x-3">
+                            <span class="method-badge method-get">GET</span>
+                            <span class="font-mono text-sm font-bold text-white group-hover:text-blue-400 transition">/health</span>
+                            <span class="text-xs text-slate-400 hidden sm:inline">— システムヘルスチェック (200 OK)</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">🟢 ヘルスチェック</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-200 accordion-icon"></i>
+                        </div>
+                    </div>
+                    <div class="accordion-content hidden border-t border-slate-800 p-5 bg-slate-950/40 space-y-4">
+                        <div class="flex items-center justify-between bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
+                            <span class="text-slate-400">サーバーが稼働中であればプレーンテキストで "OK" を返します。</span>
+                            <button onclick="executeEndpoint('/health', null, null, 'health-res', 1, 1)" class="bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center gap-1.5 cursor-pointer">
+                                <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                                <span>Execute</span>
+                            </button>
+                        </div>
+                        <div id="health-res" class="hidden space-y-3">
+                            <div class="metric-summary grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono text-xs"></div>
+                            <div class="raw-response bg-slate-950 rounded-lg p-3 border border-slate-800 font-mono text-xs"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 lucide.createIcons();
-                fetchPosts();
-                checkHealth();
+                document.getElementById('base-url-display').textContent = window.location.origin;
+                checkInitialHealth();
             });
-            async function checkHealth() {
+            function syncPreset(prefix) {
+                const preset = document.getElementById(`${prefix}-preset`).value;
+                const countInput = document.getElementById(`${prefix}-count`);
+                const concurrencyInput = document.getElementById(`${prefix}-concurrency`);
+                if (preset === 'single') {
+                    countInput.value = 1;
+                    concurrencyInput.value = 1;
+                } else if (preset === 'burst') {
+                    countInput.value = 20;
+                    concurrencyInput.value = 5;
+                } else if (preset === 'heavy') {
+                    countInput.value = 50;
+                    concurrencyInput.value = 10;
+                }
+            }
+            function setCustomMode(prefix) {
+                const presetSelect = document.getElementById(`${prefix}-preset`);
+                if (presetSelect) presetSelect.value = 'custom';
+            }
+            function toggleAccordion(id) {
+                const el = document.getElementById(id);
+                const content = el.querySelector('.accordion-content');
+                const icon = el.querySelector('.accordion-icon');
+                const isHidden = content.classList.contains('hidden');
+                content.classList.toggle('hidden');
+                icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+            }
+            async function checkInitialHealth() {
+                const start = performance.now();
                 try {
                     const res = await fetch('/health');
-                    if (res.ok) document.getElementById('health-badge').textContent = 'System Healthy (200 OK)';
-                } catch (e) {
-                    document.getElementById('health-badge').textContent = 'API Unavailable';
-                }
-            }
-            async function fetchPosts() {
-                const container = document.getElementById('posts-container');
-                container.innerHTML = `<div class="col-span-full py-16 text-center text-slate-500 flex flex-col items-center justify-center"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-rose-500 mb-3"></i><p class="text-sm">投稿データを取得中...</p></div>`;
-                lucide.createIcons();
-                const start = performance.now();
-                try {
-                    const res = await fetch('/api/posts');
-                    document.getElementById('metric-posts').textContent = `${Math.round(performance.now() - start)} ms`;
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const posts = await res.json();
-                    if (!posts || posts.length === 0) {
-                        container.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500">投稿がありません。</div>`;
-                        return;
-                    }
-                    container.innerHTML = posts.map(post => `
-                        <div onclick="openPostModal(${post.id})" class="bg-slate-900/70 hover:bg-slate-850 border border-slate-800/80 hover:border-slate-700 rounded-xl p-5 flex flex-col justify-between transition cursor-pointer group shadow-lg">
-                            <div>
-                                <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
-                                    <span class="font-medium text-slate-300 flex items-center gap-1.5"><i data-lucide="user" class="w-3.5 h-3.5 text-indigo-400"></i>${post.user_name || `User #${post.user_id}`}</span>
-                                    <span>${new Date(post.created_at).toLocaleDateString('ja-JP')}</span>
-                                </div>
-                                <h3 class="font-bold text-white group-hover:text-rose-400 transition mb-2 text-base line-clamp-1">${escapeHtml(post.title)}</h3>
-                                <p class="text-xs text-slate-400 line-clamp-3 leading-relaxed mb-4">${escapeHtml(post.content)}</p>
-                            </div>
-                            <div class="flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs text-slate-400">
-                                <span class="flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5 text-slate-500"></i>${post.view_count} views</span>
-                                <span class="flex items-center gap-1 text-indigo-400 font-medium"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>${post.comment_count || 0} 件</span>
-                            </div>
-                        </div>
-                    `).join('');
-                    lucide.createIcons();
-                } catch (err) {
-                    container.innerHTML = `<div class="col-span-full py-12 text-center text-rose-400"><i data-lucide="alert-triangle" class="w-8 h-8 mx-auto mb-2 text-rose-500"></i><p class="text-sm">データの読み込みに失敗しました: ${err.message}</p></div>`;
-                    lucide.createIcons();
-                }
-            }
-            async function openPostModal(postId) {
-                const modal = document.getElementById('post-modal');
-                modal.classList.remove('hidden');
-                document.getElementById('modal-title').textContent = '読み込み中...';
-                document.getElementById('modal-content').textContent = '';
-                document.getElementById('modal-comments').innerHTML = '<p class="text-xs text-slate-500">コメントを読み込み中...</p>';
-                const start = performance.now();
-                try {
-                    const res = await fetch(`/api/posts/${postId}`);
-                    document.getElementById('metric-detail').textContent = `${Math.round(performance.now() - start)} ms`;
-                    if (!res.ok) throw new Error('Not found');
-                    const data = await res.json();
-                    const post = data.post;
-                    const comments = data.comments || [];
-                    document.getElementById('modal-title').textContent = post.title;
-                    document.getElementById('modal-author').textContent = post.user_name || `User #${post.user_id}`;
-                    document.getElementById('modal-date').textContent = new Date(post.created_at).toLocaleString('ja-JP');
-                    document.getElementById('modal-content').textContent = post.content;
-                    document.getElementById('modal-comment-count').textContent = comments.length;
-                    if (comments.length === 0) {
-                        document.getElementById('modal-comments').innerHTML = '<p class="text-xs text-slate-500">コメントはまだありません。</p>';
+                    const duration = Math.round(performance.now() - start);
+                    if (res.ok) {
+                        document.getElementById('health-dot').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                        document.getElementById('health-text').textContent = `Healthy (${duration}ms)`;
                     } else {
-                        document.getElementById('modal-comments').innerHTML = comments.map(c => `
-                            <div class="bg-slate-950/50 rounded-lg p-3 border border-slate-800/60 text-xs">
-                                <div class="flex items-center justify-between text-slate-400 mb-1">
-                                    <span class="font-medium text-slate-300">User #${c.user_id}</span>
-                                    <span class="text-[10px]">${new Date(c.created_at).toLocaleTimeString('ja-JP')}</span>
-                                </div>
-                                <p class="text-slate-300 leading-relaxed">${escapeHtml(c.body)}</p>
-                            </div>
-                        `).join('');
+                        throw new Error();
                     }
-                } catch (err) {
-                    document.getElementById('modal-title').textContent = 'エラー';
-                    document.getElementById('modal-content').textContent = '詳細の取得に失敗しました。';
+                } catch (e) {
+                    document.getElementById('health-dot').className = 'w-2 h-2 rounded-full bg-rose-500';
+                    document.getElementById('health-text').textContent = 'Unavailable';
                 }
             }
-            function closeModal() {
-                document.getElementById('post-modal').classList.add('hidden');
+            function executeDetailEndpoint() {
+                const id = document.getElementById('detail-id').value || 1;
+                executeEndpoint(`/api/posts/${id}`, 'detail-count', 'detail-concurrency', 'detail-res');
             }
-            async function runPerformanceTest() {
-                const btn = document.getElementById('btn-measure');
-                btn.disabled = true;
-                btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>測定中...</span>`;
+            async function executeEndpoint(path, countInputId, concurrencyInputId, resultContainerId, forceCount = null, forceConcurrency = null) {
+                const resContainer = document.getElementById(resultContainerId);
+                resContainer.classList.remove('hidden');
+                const summaryEl = resContainer.querySelector('.metric-summary');
+                const rawEl = resContainer.querySelector('.raw-response');
+                const count = forceCount !== null ? forceCount : (countInputId ? parseInt(document.getElementById(countInputId).value, 10) || 1 : 1);
+                const concurrency = forceConcurrency !== null ? forceConcurrency : (concurrencyInputId ? parseInt(document.getElementById(concurrencyInputId).value, 10) || 1 : 1);
+                rawEl.innerHTML = `<div class="py-4 text-center text-slate-400 flex items-center justify-center gap-2 font-mono"><i data-lucide="loader-2" class="w-4 h-4 animate-spin text-blue-400"></i><span>測定中 (${count} requests, concurrency: ${concurrency})...</span></div>`;
+                summaryEl.innerHTML = '';
                 lucide.createIcons();
-                const t1 = performance.now();
-                await fetch('/api/posts').catch(() => {});
-                document.getElementById('metric-posts').textContent = `${Math.round(performance.now() - t1)} ms`;
-                const t2 = performance.now();
-                await fetch('/api/posts/1').catch(() => {});
-                document.getElementById('metric-detail').textContent = `${Math.round(performance.now() - t2)} ms`;
-                const t3 = performance.now();
-                await fetch('/api/heavy-calc').catch(() => {});
-                document.getElementById('metric-calc').textContent = `${Math.round(performance.now() - t3)} ms`;
-                btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>⚡ 一括測定を実行</span>`;
+                const latencies = [];
+                let successes = 0;
+                let failures = 0;
+                let lastStatus = 0;
+                let lastStatusText = '';
+                let lastBodyText = '';
+                let lastHeaders = {};
+                let lastContentLength = 0;
+                const totalStartTime = performance.now();
+                const queue = Array.from({ length: count }, (_, i) => i);
+                const workers = Array.from({ length: Math.min(concurrency, count) }, async () => {
+                    while (queue.length > 0) {
+                        queue.shift();
+                        const reqStart = performance.now();
+                        try {
+                            const res = await fetch(path);
+                            const duration = performance.now() - reqStart;
+                            latencies.push(duration);
+                            if (res.ok) successes++; else failures++;
+                            lastStatus = res.status;
+                            lastStatusText = res.statusText || (res.ok ? 'OK' : 'Error');
+                            if (queue.length === 0) {
+                                lastHeaders = Object.fromEntries(res.headers.entries());
+                                lastBodyText = await res.text();
+                                lastContentLength = lastBodyText.length;
+                            }
+                        } catch (err) {
+                            failures++;
+                            lastStatus = 0;
+                            lastStatusText = 'Network Error';
+                        }
+                    }
+                });
+                await Promise.all(workers);
+                const totalDuration = performance.now() - totalStartTime;
+                latencies.sort((a, b) => a - b);
+                const min = latencies.length > 0 ? latencies[0].toFixed(1) : 0;
+                const max = latencies.length > 0 ? latencies[latencies.length - 1].toFixed(1) : 0;
+                const avg = latencies.length > 0 ? (latencies.reduce((a, b) => a + b, 0) / latencies.length).toFixed(1) : 0;
+                const p95 = latencies.length > 0 ? latencies[Math.floor(latencies.length * 0.95)].toFixed(1) : 0;
+                const qps = (count / (totalDuration / 1000)).toFixed(1);
+                summaryEl.innerHTML = `
+                    <div class="bg-slate-900 p-2.5 rounded border border-slate-800 text-center"><span class="text-[10px] text-slate-500 block">HTTP STATUS</span><span class="font-bold ${lastStatus >= 200 && lastStatus < 300 ? 'text-emerald-400' : 'text-rose-400'}">${lastStatus || 'ERR'} ${lastStatusText}</span></div>
+                    <div class="bg-slate-900 p-2.5 rounded border border-slate-800 text-center"><span class="text-[10px] text-slate-500 block">AVG LATENCY</span><span class="font-bold text-white">${avg} <span class="text-[10px] text-slate-400 font-normal">ms</span></span></div>
+                    <div class="bg-slate-900 p-2.5 rounded border border-slate-800 text-center"><span class="text-[10px] text-slate-500 block">P95 / MAX</span><span class="font-bold text-amber-400">${p95} / ${max} <span class="text-[10px] text-slate-400 font-normal">ms</span></span></div>
+                    <div class="bg-slate-900 p-2.5 rounded border border-slate-800 text-center"><span class="text-[10px] text-slate-500 block">THROUGHPUT</span><span class="font-bold text-cyan-400">${qps} <span class="text-[10px] text-slate-400 font-normal">req/s</span></span></div>
+                    <div class="bg-slate-900 p-2.5 rounded border border-slate-800 text-center"><span class="text-[10px] text-slate-500 block">SUCCESS / TOTAL</span><span class="font-bold ${failures === 0 ? 'text-emerald-400' : 'text-rose-400'}">${successes} / ${count}</span></div>
+                `;
+                let formattedBody = lastBodyText;
+                try {
+                    const parsed = JSON.parse(lastBodyText);
+                    formattedBody = JSON.stringify(parsed, null, 2);
+                } catch (e) {}
+                rawEl.innerHTML = `
+                    <div class="flex items-center justify-between text-slate-400 pb-2 border-b border-slate-850 text-[11px] mb-2">
+                        <span class="flex items-center gap-1.5 text-slate-300"><i data-lucide="terminal" class="w-3.5 h-3.5 text-blue-400"></i><span>Raw Response Payload (${(lastContentLength / 1024).toFixed(2)} KB)</span></span>
+                        <span class="text-slate-500">Content-Type: ${lastHeaders['content-type'] || 'unknown'}</span>
+                    </div>
+                    <pre class="overflow-x-auto text-[11px] text-slate-300 leading-relaxed max-h-72 select-all">${escapeHtml(formattedBody)}</pre>
+                `;
                 lucide.createIcons();
             }
             function escapeHtml(str) {
                 if (!str) return '';
                 return str.replace(/[&<>"']/g, function(m) {
-                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
                 });
             }
         </script>

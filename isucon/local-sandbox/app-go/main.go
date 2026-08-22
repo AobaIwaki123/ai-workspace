@@ -204,9 +204,19 @@ func main() {
 		mux.Handle("/", http.FileServer(http.FS(subFS)))
 	}
 
+	// リクエストログ出力ミドルウェア
+	loggedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		mux.ServeHTTP(w, r)
+		// 静的アセット以外の API リクエストをログ出力
+		if strings.HasPrefix(r.URL.Path, "/api/") || r.URL.Path == "/health" {
+			log.Printf("📥 [%s] %s -> completed in %v (Remote: %s)", r.Method, r.URL.Path, time.Since(start), r.RemoteAddr)
+		}
+	})
+
 	server := &http.Server{
 		Addr:    ":8000",
-		Handler: mux,
+		Handler: loggedHandler,
 	}
 
 	log.Println("Starting API server on :8000")
