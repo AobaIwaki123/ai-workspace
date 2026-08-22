@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: isucon-dev
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/AobaIwaki123/ai-workspace'
+    targetRevision: HEAD
+    path: isucon/k8s/manifests
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: isucon
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true

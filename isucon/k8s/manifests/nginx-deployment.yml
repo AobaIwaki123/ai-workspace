@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: isucon-nginx
+  namespace: isucon
+  labels:
+    app: isucon-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: isucon-nginx
+  template:
+    metadata:
+      labels:
+        app: isucon-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: nginx-logs
+              mountPath: /var/log/nginx
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 3
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: isucon-nginx-conf
+        - name: nginx-logs
+          emptyDir: {}

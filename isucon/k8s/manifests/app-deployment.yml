@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: isucon-app
+  namespace: isucon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: isucon-app
+  template:
+    metadata:
+      labels:
+        app: isucon-app
+    spec:
+      containers:
+        - name: app
+          image: isucon-app:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MYSQL_HOST
+              value: "isucon-mysql"
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_USER
+              value: "isucon"
+            - name: MYSQL_PASSWORD
+              value: "isucon"
+            - name: MYSQL_DATABASE
+              value: "isucon"
+          ports:
+            - containerPort: 8000
+              name: http
+            - containerPort: 6060
+              name: pprof
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 3
