@@ -40,7 +40,7 @@ status:
 bench:
 	@echo "==> ベンチマークJobを実行します..."
 	@kubectl delete job isucon-benchmarker -n $(NAMESPACE) --ignore-not-found=true > /dev/null
-	@kubectl create -f manifests/benchmarker-configmap.yml -n $(NAMESPACE) || true
+	@kubectl apply -f manifests/benchmarker-configmap.yml -n $(NAMESPACE) > /dev/null
 	@echo "==> ベンチマーク実行中 (ログ追従)..."
 	@kubectl wait --for=condition=ready pod -l job-name=isucon-benchmarker -n $(NAMESPACE) --timeout=30s > /dev/null || true
 	@kubectl logs -f job/isucon-benchmarker -n $(NAMESPACE)
