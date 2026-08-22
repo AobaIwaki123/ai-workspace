@@ -41,6 +41,11 @@ AIと協業するためのワークスペース
 - 複数ステップの開発を行う場合は `stacked-pr` スキルを活用して積み上げ型 PR を作成します。
 - ドキュメント（README、ROADMAP等）では原則として絵文字を使用しません。
 
+# CI / Go / OpenAPI 開発・トラブルシューティング知見 (CI Best Practices)
+
+- CI（GitHub Actions）の構築、Go バージョン固定、OpenAPI コード生成、Linter 対策において過去に得られた知見と失敗防止策は **`.agents/rules/ci-troubleshooting.md`** に集約しています。
+- 新規リポジトリ作成時や CI 修正時は、本知見を参照してローカル完全検証（`scripts/verify-all.sh`）を徹底します。
+
 # 人間に対する信頼性・透明性担保 (Human-Centric Transparency)
 
 - UI、API ツール、ダッシュボード、計測スクリプトを実装する際は、ブラックボックスなモック感を排除し、生データ・実ログ・パラメータ完全同期を提供する **`.agents/rules/ui-transparency.md`** の原則を必ず遵守します。
