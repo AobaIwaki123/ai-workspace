@@ -2,14 +2,34 @@
 
 AIと協業するためのワークスペース
 
-# このリポジトリの使い方
+# このリポジトリの使い方（Workspace / Space 運用）
 
-1. テーマに沿ってworkspaceを作成する
-2. AGENTS.mdとdiscussion.mdで進捗管理を行う
-   1. AGENTS.mdでは、そのworkspaceにおける規約を定義する
-   2. discussion.mdでは、そのworkspaceにおける議論の方向性や進捗を記録する
-3. ある程度まとまった調査ができたらnote/にまとめる
-4. 洗練されたnoteはadr/にまとめる
+本リポジトリでは、テーマや課題ごとに自己完結した作業領域（**Space / Workspace**）をリポジトリ直下に切り、調査・議論・意思決定・自動化コードを蓄積します。
+
+### 1. Space（Workspace）の作成と基本構成
+新しいテーマに取り組む際は、作成スクリプトを用いて標準レイアウトを自動生成します。
+
+```bash
+./scripts/create-workspace.sh <workspace-name> "<workspace-title>"
+```
+
+生成される標準ディレクトリ構造:
+```
+<workspace-name>/
+├── AGENTS.md             # そのテーマ固有の規約・方針・スコープ
+├── discussion.md         # 議論の方向性、要件定義、ロードマップ、進捗管理
+├── note/                 # 調査・学習・技術メモ（01_xxx.md 形式で蓄積）
+├── adr/                  # 確定した方針・アーキテクチャ選定 (0001-xxx.md)
+└── scripts/              # そのテーマ専用のスクリプト・ツール・自動化コード
+```
+
+### 2. Space 内の協業フロー
+1. **起票 (Scaffold)**: `create-workspace.sh` で Space を作成。
+2. **要件・進捗管理 (`discussion.md`)**: 目的、ロードマップ、ToDo、議論の経緯を記録・更新。
+3. **規約定義 (`AGENTS.md`)**: そのテーマ特有の制約、API利用規約、セキュリティ留意事項を明記。
+4. **知見の蓄積 (`note/`)**: 調査した技術仕様や検証結果を `note/` に連番付きでドキュメント化。
+5. **意思決定の記録 (`adr/`)**: 設計方針や採用技術の選定理由を `adr/` に記録。
+6. **スクリプト化 (`scripts/`)**: 再現可能な実行コードやツールを `scripts/` に整備。汎用性の高いものは `.agents/skills/` への昇格を検討。
 
 # Git Worktree 開発運用ルール
 
