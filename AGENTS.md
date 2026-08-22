@@ -20,7 +20,9 @@ AIと協業するためのワークスペース
 
 ai-workspace全体に関する規約やworkspace単位の規約について、不足がある場合は、AGENTS.mdに修正提案を行うことができます。
 
-# Skill作成・活用
+# Skill作成・活用・レビュー
 
 - 本リポジトリでの作業の中で、長めのプロンプトが渡されたり修正指示が何度も来た場合は、作業完了後にSkillとして `.agents/skills/<skill-name>/` にまとめることを提案します。
+- スキルの作成・編集時は、`.agents/rules/skill-authoring.md` に基づきベストプラクティス（Frontmatter、Progressive Disclosure、スクリプト化、検証手順等）のセルフレビューを自動実施します。
+- スキルの静的解析・品質チェックには `review-skill` スキル（または `./.agents/skills/review-skill/scripts/validate-skill.sh`）を活用します。
 - コマンド許可プロンプトの頻発時は `auto-allow-command` スキルを活用してAllowlistの更新を提案します。
