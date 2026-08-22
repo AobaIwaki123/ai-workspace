@@ -20,7 +20,8 @@ spec:
             - /bin/sh
             - -c
             - |
-              cp -r /src-cm/* /tmp/src/
+              mkdir -p /tmp/src
+              cp -L /src-cm/* /tmp/src/
               cd /tmp/src
               CGO_ENABLED=0 GOOS=linux go build -o /app/server .
           volumeMounts:
