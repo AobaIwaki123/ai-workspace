@@ -14,8 +14,14 @@ AIと協業するためのワークスペース
 # Git Worktree 開発運用ルール
 
 - 本リポジトリでのタスク作業は、ブランチの競合を防ぎ並行作業を安全に行うため、原則として **Git Worktree**（`.worktrees/<branch-name>`）を作成して行います。
+- **ルート作業領域（`main` ブランチ）での直接作業・コミットは禁止**します。すべての変更はワークツリーでブランチを切り、Pull Request（PR）を作成してマージします。
 - Worktree 間で共有したいファイル（環境変数 `.env`、共通データ等）は、ルートの **`.shared/`** ディレクトリ（`.gitignore` 対象）に配置し、シンボリックリンク等で参照します。
 - 操作には `git-worktree` スキル（`./.agents/skills/git-worktree/scripts/worktree.sh`）を活用します。
+
+# 人間に対する信頼性・透明性担保 (Human-Centric Transparency)
+
+- UI、API ツール、ダッシュボード、計測スクリプトを実装する際は、ブラックボックスなモック感を排除し、生データ・実ログ・パラメータ完全同期を提供する **`.agents/rules/ui-transparency.md`** の原則を必ず遵守します。
+- 画面操作が本物のバックエンドに届いていることを人間が独立して検証できるよう、リアルタイムログ監視コマンド（`kubectl logs -f` 等）を必ず提示します。
 
 # 権限・セキュリティ設定 (Permissions)
 
