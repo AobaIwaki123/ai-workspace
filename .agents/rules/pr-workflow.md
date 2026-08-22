@@ -20,7 +20,8 @@
    - 複数段階の開発を行う場合は、`stacked-pr` スキルを活用して積み上げ型 PR を作成します。
 2. **Pull Request の作成**:
    - `gh pr create` を使用して GitHub 上に PR を起票します。
-   - 概要、変更理由、検証内容（CI結果、単体テスト結果など）を明記します。
+   - **PR タイトルは、リリースノートだけを見て何をやったかが一目で分かるように、具体的かつ明瞭な日本語で記述します**（例: `feat: release ブランチ連動の Kubernetes 自動デプロイと検証スクリプトの追加`, `fix: .gitignore の修正による cmd/lumitree のコミット漏れ解消`）。
+   - 概要、変更理由、検証内容（CI結果、単体テスト結果など）を本文に明記します。
 3. **CI の通過確認**:
    - PR を作成後、GitHub Actions CI（Lint, Test, Build）が Green（PASS）になることを確認します。
 
