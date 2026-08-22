@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -93,12 +94,18 @@ func handleGetPosts(w http.ResponseWriter, r *http.Request) {
 	for i := range posts {
 		// ユーザー名取得 (N回クエリ)
 		var user User
-		_ = db.Get(&user, "SELECT name FROM users WHERE id = ?", posts[i].UserID)
+		if err := db.Get(&user, "SELECT name FROM users WHERE id = ?", posts[i].UserID); err != nil && err != sql.ErrNoRows {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		posts[i].UserName = user.Name
 
 		// コメント数取得 (N回クエリ & post_idにIndexがないので毎回Full Scan)
 		var count int
-		_ = db.Get(&count, "SELECT COUNT(*) FROM comments WHERE post_id = ?", posts[i].ID)
+		if err := db.Get(&count, "SELECT COUNT(*) FROM comments WHERE post_id = ?", posts[i].ID); err != nil && err != sql.ErrNoRows {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		posts[i].CommentCount = count
 	}
 
@@ -117,14 +124,20 @@ func handleGetPostDetail(w http.ResponseWriter, r *http.Request) {
 
 	var post Post
 	err = db.Get(&post, "SELECT * FROM posts WHERE id = ?", id)
-	if err != nil {
+	if err == sql.ErrNoRows {
 		http.Error(w, "Post not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// コメント一覧 (post_idにIndexなし)
 	var comments []Comment
-	_ = db.Select(&comments, "SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC", id)
+	if err := db.Select(&comments, "SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC", id); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{

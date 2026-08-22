@@ -105,7 +105,8 @@ make pprof
    ALTER TABLE comments ADD INDEX idx_post_id (post_id);
    ```
 2. **`app-go/main.go` の N+1 を解消する**:
-   - `SELECT COUNT(*) FROM comments WHERE post_id IN (...) GROUP BY post_id` で一括取得。
+   - ユーザー名取得: 投稿に含まれる `user_id` を収集し、`SELECT id, name FROM users WHERE id IN (...)` で一括取得してメモリ上でマッピング。
+   - コメント数取得: `SELECT post_id, COUNT(*) FROM comments WHERE post_id IN (...) GROUP BY post_id` で一括取得。
 3. **`app-go/main.go` の正規表現を事前コンパイルする**:
    - `var re = regexp.MustCompile(...)` としてループ外に逃がす。
 4. **再度 `make bench` を実行**:

@@ -27,7 +27,7 @@ run_worker() {
 
     while [ $(date +%s) -lt $END_TIME ]; do
         # 1. 投稿一覧取得 (N+1ボトルネック)
-        if curl -s -f "${TARGET_URL}/api/posts" > /dev/null; then
+        if curl -s -f --max-time 3 --connect-timeout 2 "${TARGET_URL}/api/posts" > /dev/null; then
             ok_count=$((ok_count + 1))
         else
             ng_count=$((ng_count + 1))
@@ -35,14 +35,14 @@ run_worker() {
 
         # 2. 投稿詳細取得 (スロークエリボトルネック)
         post_id=$(( (RANDOM % 20) + 1 ))
-        if curl -s -f "${TARGET_URL}/api/posts/${post_id}" > /dev/null; then
+        if curl -s -f --max-time 3 --connect-timeout 2 "${TARGET_URL}/api/posts/${post_id}" > /dev/null; then
             ok_count=$((ok_count + 1))
         else
             ng_count=$((ng_count + 1))
         fi
 
         # 3. CPU負荷エンドポイント
-        if curl -s -f "${TARGET_URL}/api/heavy-calc" > /dev/null; then
+        if curl -s -f --max-time 3 --connect-timeout 2 "${TARGET_URL}/api/heavy-calc" > /dev/null; then
             ok_count=$((ok_count + 1))
         else
             ng_count=$((ng_count + 1))

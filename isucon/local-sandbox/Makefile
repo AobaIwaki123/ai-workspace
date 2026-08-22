@@ -54,8 +54,12 @@ slow:
 	@docker run --rm -v $(PWD)/logs/mysql:/var/log/mysql percona/percona-toolkit:latest pt-query-digest /var/log/mysql/mysql-slow.log | head -n 45
 
 pprof:
-	@echo "==> ベンチマーク実行中に30秒のCPUプロファイルを取得します..."
-	@go tool pprof -http=localhost:1080 http://localhost:6060/debug/pprof/profile?seconds=10
+	@echo "==> ベンチマーク実行中に10秒のCPUプロファイルを取得して可視化します..."
+	@if command -v go > /dev/null; then \
+		go tool pprof -http=localhost:1080 http://localhost:6060/debug/pprof/profile?seconds=10; \
+	else \
+		echo "❌ 'go' コマンドが見つかりません。ホストに Go をインストールするか、ブラウザで http://localhost:6060/debug/pprof/ を開いてください。"; \
+	fi
 
 status:
 	docker compose ps
