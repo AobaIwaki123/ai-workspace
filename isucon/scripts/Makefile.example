@@ -1,0 +1,47 @@
+# ==========================================
+# ISUCON 秘伝のMakefile テンプレート
+# ==========================================
+
+APP_SERVICE := isuda.go.service
+NGINX_LOG := /var/log/nginx/access.log
+MYSQL_SLOW_LOG := /var/log/mysql/mysql-slow.log
+ALP_MATCH := "/api/users/[0-9]+,/api/items/[0-9]+"
+
+.PHONY: help deploy build restart bench-prepare alp pt slow-on slow-off log-off status
+
+help:
+	@echo "利用可能なコマンド:"
+	@echo "  make deploy         - git pull, build, bench-prepare を一括実行"
+	@echo "  make bench-prepare  - ログクリア & 全サービス再起動 (ベンチマーク準備)"
+	@echo "  make alp            - alpでNginxアクセスログを集計"
+	@echo "  make slow           - pt-query-digestでスロークエリを集計"
+	@echo "  make log-off        - 競技終了前: 全ログをOFFにして再起動"
+	@echo "  make status         - サービス稼働状態の確認"
+
+deploy:
+	git pull origin main
+	$(MAKE) build
+	$(MAKE) bench-prepare
+
+build:
+	cd /home/isucon/webapp/go && go build -o /home/isucon/webapp/go/app .
+
+bench-prepare:
+	@echo "==> ログローテート & サービス再起動..."
+	@sudo rm -f $(NGINX_LOG)
+	@sudo rm -f $(MYSQL_SLOW_LOG)
+	@sudo systemctl restart nginx
+	@sudo systemctl restart mysql
+	@sudo systemctl restart $(APP_SERVICE)
+	@echo "==> ベンチマーク準備完了！"
+
+alp:
+	@sudo alp ltsv --file=$(NGINX_LOG) --sort=sum -r -m $(ALP_MATCH)
+
+slow:
+	@sudo pt-query-digest $(MYSQL_SLOW_LOG) | head -n 40
+
+status:
+	sudo systemctl status $(APP_SERVICE) --no-pager
+	sudo systemctl status nginx --no-pager
+	sudo systemctl status mysql --no-pager
