@@ -1,21 +1,14 @@
 {
+  "enableTelemetry": false,
+  "model": "Claude Opus 4.6 (Thinking)",
+  "trustedWorkspaces": [
+    "/Users/aobaiwaki",
+    "/Users/aobaiwaki/ai-workspace"
+  ],
   "permissions": {
     "allow": [
-      "command(git status)",
-      "command(git diff)",
-      "command(git diff .*)",
-      "command(git log)",
-      "command(git log .*)",
-      "command(git show)",
-      "command(git show .*)",
-      "command(git branch)",
-      "command(git branch .*)",
-      "command(git checkout .*)",
-      "command(git switch .*)",
-      "command(git rev-parse .*)",
-      "command(git remote .*)",
-      "command(git add .*)",
-      "command(git commit .*)",
+      "command(git)",
+      "command(git .*)",
       "command(ls)",
       "command(ls .*)",
       "command(pwd)",
@@ -40,15 +33,29 @@
       "command(gh pr .*)",
       "command(gh issue .*)",
       "command(gh auth .*)",
-      "command(./scripts/.*)"
+      "command(jq .*)",
+      "command(mkdir .*)",
+      "command(chmod .*)",
+      "command(kubectl)",
+      "command(kubectl .*)",
+      "command(k0sctl)",
+      "command(k0sctl .*)",
+      "command(k8sctl)",
+      "command(k8sctl .*)",
+      "command(helm)",
+      "command(helm .*)"
     ],
     "deny": [
+      "command(python3? .*)",
+      "command(bash .*)",
+      "command(./scripts/.*)",
       "command(rm -rf /)",
       "command(rm -rf ~.*)",
       "command(git push.*--force.*)",
       "command(git push.*-f .*)",
       "command(git reset --hard.*)",
-      "command(git clean -fd.*)"
+      "command(git clean -fd.*)",
+      "command(sudo .*)"
     ]
   }
 }

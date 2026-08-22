@@ -25,7 +25,11 @@
 - `gh pr list`, `gh pr view`, `gh pr diff`, `gh pr status`, `gh pr create`
 - `gh issue list`, `gh issue view`
 
-### E. ワークスペース内スクリプト
+### E. Kubernetes / クラウド操作 CLI
+- `kubectl`, `kubectl get .*`, `kubectl describe .*`, `kubectl logs .*`, `kubectl top .*`
+- `k0sctl`, `k8sctl`, `helm`
+
+### F. ワークスペース内スクリプト
 - `./scripts/*`, `bash ./scripts/*`
 
 ---
