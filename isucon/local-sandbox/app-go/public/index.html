@@ -48,13 +48,35 @@
 
     <!-- メインコンテンツ -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <!-- 説明バナー -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-start space-x-3 text-xs text-slate-400">
-            <i data-lucide="info" class="w-4 h-4 text-cyan-400 mt-0.5 shrink-0"></i>
-            <div>
-                <span class="text-slate-200 font-semibold">実リクエスト透過インスペクター:</span>
-                各エンドポイントをクリックして展開し、パラメータや測定モード（単発 / 並行パルス負荷）を選択して「Execute & Measure」を実行してください。
-                ブラウザから実際にバックエンドへリクエストを送信し、<span class="text-slate-200">往復レイテンシ、HTTPヘッダ、生レスポンス、SQL発行構造</span> を透過的に確認できます。
+        <!-- 説明 & リアルタイムログ確認ガイド -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3 text-xs">
+            <div class="flex items-start space-x-3 text-slate-400">
+                <i data-lucide="info" class="w-4 h-4 text-cyan-400 mt-0.5 shrink-0"></i>
+                <div>
+                    <span class="text-slate-200 font-semibold">実リクエスト透過インスペクター:</span>
+                    ブラウザから実際にバックエンドへ HTTP 通信を飛ばし、レイテンシと生レスポンスを測定します。
+                </div>
+            </div>
+
+            <!-- バックエンド実ログ確認コマンド -->
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-850 space-y-1.5">
+                <div class="flex items-center justify-between text-slate-300 font-medium">
+                    <span class="flex items-center gap-1.5 text-emerald-400">
+                        <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+                        <span>🖥️ ターミナルからバックエンドの実ログをリアルタイム監視する</span>
+                    </span>
+                    <span class="text-[10px] text-slate-500">ボタンを押すと即座にログが流れます</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] font-mono text-slate-300 pt-1">
+                    <div class="bg-slate-900 px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between">
+                        <span class="text-slate-400">Go App ログ:</span>
+                        <code class="text-amber-300">kubectl logs -f -l app=isucon-app -n isucon</code>
+                    </div>
+                    <div class="bg-slate-900 px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between">
+                        <span class="text-slate-400">Nginx LTSV ログ:</span>
+                        <code class="text-amber-300">kubectl logs -f -l app=isucon-nginx -n isucon</code>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -76,7 +98,6 @@
                 </div>
 
                 <div class="accordion-content hidden border-t border-slate-800 p-5 bg-slate-950/40 space-y-4">
-                    <!-- ボトルネック解説 & SQL構造 -->
                     <div class="bg-slate-900/90 rounded-lg p-3.5 border border-slate-800 space-y-2 text-xs">
                         <div class="font-semibold text-rose-400 flex items-center gap-1.5">
                             <i data-lucide="database" class="w-3.5 h-3.5"></i>
@@ -89,22 +110,27 @@
                         </div>
                     </div>
 
-                    <!-- 測定パラメータ設定 -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
+                    <!-- 測定パラメータ設定 (プリセット連動型) -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
                         <div>
-                            <label class="block text-slate-400 mb-1 font-medium">測定モード</label>
-                            <select id="posts-mode" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
-                                <option value="single">Single (単発 1 Request)</option>
-                                <option value="burst" selected>Concurrent Burst (並行 20 Requests)</option>
-                                <option value="heavy">Heavy Burst (並行 50 Requests)</option>
+                            <label class="block text-slate-400 mb-1 font-medium">測定プリセット</label>
+                            <select id="posts-preset" onchange="syncPreset('posts')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                                <option value="single">Single (1 req / 1 並行)</option>
+                                <option value="burst" selected>Standard Burst (20 req / 5 並行)</option>
+                                <option value="heavy">Heavy Burst (50 req / 10 並行)</option>
+                                <option value="custom">Custom (カスタム指定)</option>
                             </select>
                         </div>
                         <div>
+                            <label class="block text-slate-400 mb-1 font-medium">総リクエスト数 (Count)</label>
+                            <input type="number" id="posts-count" value="20" min="1" max="100" onchange="setCustomMode('posts')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                        </div>
+                        <div>
                             <label class="block text-slate-400 mb-1 font-medium">並行度 (Concurrency)</label>
-                            <input type="number" id="posts-concurrency" value="5" min="1" max="20" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                            <input type="number" id="posts-concurrency" value="5" min="1" max="20" onchange="setCustomMode('posts')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
                         </div>
                         <div class="flex items-end">
-                            <button onclick="executeEndpoint('/api/posts', 'posts-mode', 'posts-concurrency', 'posts-res')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <button onclick="executeEndpoint('/api/posts', 'posts-count', 'posts-concurrency', 'posts-res')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i data-lucide="play" class="w-3.5 h-3.5"></i>
                                 <span>Execute & Measure</span>
                             </button>
@@ -113,9 +139,7 @@
 
                     <!-- 測定結果表示領域 -->
                     <div id="posts-res" class="hidden space-y-3">
-                        <!-- 計測サマリ -->
                         <div class="metric-summary grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono text-xs"></div>
-                        <!-- 生レスポンス -->
                         <div class="raw-response bg-slate-950 rounded-lg p-3 border border-slate-800 font-mono text-xs"></div>
                     </div>
                 </div>
@@ -147,21 +171,27 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-3 bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
                         <div>
                             <label class="block text-slate-400 mb-1 font-medium">投稿 ID ({id})</label>
                             <input type="number" id="detail-id" value="1" min="1" max="1000" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
                         </div>
                         <div>
-                            <label class="block text-slate-400 mb-1 font-medium">測定モード</label>
-                            <select id="detail-mode" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
-                                <option value="single" selected>Single (単発 1 Request)</option>
-                                <option value="burst">Concurrent Burst (並行 20 Requests)</option>
+                            <label class="block text-slate-400 mb-1 font-medium">測定プリセット</label>
+                            <select id="detail-preset" onchange="syncPreset('detail')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                                <option value="single" selected>Single (1 req / 1 並行)</option>
+                                <option value="burst">Standard Burst (20 req / 5 並行)</option>
+                                <option value="heavy">Heavy Burst (50 req / 10 並行)</option>
+                                <option value="custom">Custom (カスタム指定)</option>
                             </select>
                         </div>
                         <div>
+                            <label class="block text-slate-400 mb-1 font-medium">総リクエスト数 (Count)</label>
+                            <input type="number" id="detail-count" value="1" min="1" max="100" onchange="setCustomMode('detail')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                        </div>
+                        <div>
                             <label class="block text-slate-400 mb-1 font-medium">並行度 (Concurrency)</label>
-                            <input type="number" id="detail-concurrency" value="5" min="1" max="20" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                            <input type="number" id="detail-concurrency" value="1" min="1" max="20" onchange="setCustomMode('detail')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
                         </div>
                         <div class="flex items-end">
                             <button onclick="executeDetailEndpoint()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center justify-center gap-1.5 cursor-pointer">
@@ -206,21 +236,26 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
                         <div>
-                            <label class="block text-slate-400 mb-1 font-medium">測定モード</label>
-                            <select id="calc-mode" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
-                                <option value="single">Single (単発 1 Request)</option>
-                                <option value="burst" selected>Concurrent Burst (並行 20 Requests)</option>
-                                <option value="heavy">Heavy CPU Load (並行 50 Requests)</option>
+                            <label class="block text-slate-400 mb-1 font-medium">測定プリセット</label>
+                            <select id="calc-preset" onchange="syncPreset('calc')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                                <option value="single">Single (1 req / 1 並行)</option>
+                                <option value="burst" selected>Standard Burst (20 req / 5 並行)</option>
+                                <option value="heavy">Heavy Burst (50 req / 10 並行)</option>
+                                <option value="custom">Custom (カスタム指定)</option>
                             </select>
                         </div>
                         <div>
+                            <label class="block text-slate-400 mb-1 font-medium">総リクエスト数 (Count)</label>
+                            <input type="number" id="calc-count" value="20" min="1" max="100" onchange="setCustomMode('calc')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                        </div>
+                        <div>
                             <label class="block text-slate-400 mb-1 font-medium">並行度 (Concurrency)</label>
-                            <input type="number" id="calc-concurrency" value="5" min="1" max="20" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+                            <input type="number" id="calc-concurrency" value="5" min="1" max="20" onchange="setCustomMode('calc')" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
                         </div>
                         <div class="flex items-end">
-                            <button onclick="executeEndpoint('/api/heavy-calc', 'calc-mode', 'calc-concurrency', 'calc-res')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <button onclick="executeEndpoint('/api/heavy-calc', 'calc-count', 'calc-concurrency', 'calc-res')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i data-lucide="play" class="w-3.5 h-3.5"></i>
                                 <span>Execute & Measure</span>
                             </button>
@@ -251,7 +286,7 @@
                 <div class="accordion-content hidden border-t border-slate-800 p-5 bg-slate-950/40 space-y-4">
                     <div class="flex items-center justify-between bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 text-xs">
                         <span class="text-slate-400">サーバーが稼働中であればプレーンテキストで "OK" を返します。</span>
-                        <button onclick="executeEndpoint('/health', null, null, 'health-res', 'single')" class="bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center gap-1.5 cursor-pointer">
+                        <button onclick="executeEndpoint('/health', null, null, 'health-res', 1, 1)" class="bg-blue-600 hover:bg-blue-500 text-white font-mono font-semibold py-1.5 px-4 rounded transition flex items-center gap-1.5 cursor-pointer">
                             <i data-lucide="play" class="w-3.5 h-3.5"></i>
                             <span>Execute</span>
                         </button>
@@ -273,7 +308,29 @@
             checkInitialHealth();
         });
 
-        // アコーディオン開閉
+        // プリセットと入力値の自動同期ロジック
+        function syncPreset(prefix) {
+            const preset = document.getElementById(`${prefix}-preset`).value;
+            const countInput = document.getElementById(`${prefix}-count`);
+            const concurrencyInput = document.getElementById(`${prefix}-concurrency`);
+
+            if (preset === 'single') {
+                countInput.value = 1;
+                concurrencyInput.value = 1;
+            } else if (preset === 'burst') {
+                countInput.value = 20;
+                concurrencyInput.value = 5;
+            } else if (preset === 'heavy') {
+                countInput.value = 50;
+                concurrencyInput.value = 10;
+            }
+        }
+
+        function setCustomMode(prefix) {
+            const presetSelect = document.getElementById(`${prefix}-preset`);
+            if (presetSelect) presetSelect.value = 'custom';
+        }
+
         function toggleAccordion(id) {
             const el = document.getElementById(id);
             const content = el.querySelector('.accordion-content');
@@ -284,7 +341,6 @@
             icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
         }
 
-        // 初期ヘルスチェック
         async function checkInitialHealth() {
             const start = performance.now();
             try {
@@ -302,23 +358,20 @@
             }
         }
 
-        // 投稿詳細専用ハンドラ
         function executeDetailEndpoint() {
             const id = document.getElementById('detail-id').value || 1;
-            executeEndpoint(`/api/posts/${id}`, 'detail-mode', 'detail-concurrency', 'detail-res');
+            executeEndpoint(`/api/posts/${id}`, 'detail-count', 'detail-concurrency', 'detail-res');
         }
 
-        // エンドポイント測定実行コアエンジン
-        async function executeEndpoint(path, modeSelectId, concurrencyInputId, resultContainerId, forceMode = null) {
+        async function executeEndpoint(path, countInputId, concurrencyInputId, resultContainerId, forceCount = null, forceConcurrency = null) {
             const resContainer = document.getElementById(resultContainerId);
             resContainer.classList.remove('hidden');
 
             const summaryEl = resContainer.querySelector('.metric-summary');
             const rawEl = resContainer.querySelector('.raw-response');
 
-            const mode = forceMode || (modeSelectId ? document.getElementById(modeSelectId).value : 'single');
-            const concurrency = concurrencyInputId ? parseInt(document.getElementById(concurrencyInputId).value, 10) || 5 : 1;
-            const count = mode === 'heavy' ? 50 : (mode === 'burst' ? 20 : 1);
+            const count = forceCount !== null ? forceCount : (countInputId ? parseInt(document.getElementById(countInputId).value, 10) || 1 : 1);
+            const concurrency = forceConcurrency !== null ? forceConcurrency : (concurrencyInputId ? parseInt(document.getElementById(concurrencyInputId).value, 10) || 1 : 1);
 
             rawEl.innerHTML = `<div class="py-4 text-center text-slate-400 flex items-center justify-center gap-2 font-mono"><i data-lucide="loader-2" class="w-4 h-4 animate-spin text-blue-400"></i><span>測定中 (${count} requests, concurrency: ${concurrency})...</span></div>`;
             summaryEl.innerHTML = '';
@@ -334,8 +387,6 @@
             let lastContentLength = 0;
 
             const totalStartTime = performance.now();
-
-            // ワーカー実行キュー
             const queue = Array.from({ length: count }, (_, i) => i);
             const workers = Array.from({ length: Math.min(concurrency, count) }, async () => {
                 while (queue.length > 0) {
@@ -346,16 +397,10 @@
                         const duration = performance.now() - reqStart;
                         latencies.push(duration);
 
-                        if (res.ok) {
-                            successes++;
-                        } else {
-                            failures++;
-                        }
-
+                        if (res.ok) successes++; else failures++;
                         lastStatus = res.status;
                         lastStatusText = res.statusText || (res.ok ? 'OK' : 'Error');
                         
-                        // 最後のレスポンス内容を保持
                         if (queue.length === 0) {
                             lastHeaders = Object.fromEntries(res.headers.entries());
                             lastBodyText = await res.text();
@@ -372,7 +417,6 @@
             await Promise.all(workers);
             const totalDuration = performance.now() - totalStartTime;
 
-            // 統計計算
             latencies.sort((a, b) => a - b);
             const min = latencies.length > 0 ? latencies[0].toFixed(1) : 0;
             const max = latencies.length > 0 ? latencies[latencies.length - 1].toFixed(1) : 0;
@@ -380,7 +424,6 @@
             const p95 = latencies.length > 0 ? latencies[Math.floor(latencies.length * 0.95)].toFixed(1) : 0;
             const qps = (count / (totalDuration / 1000)).toFixed(1);
 
-            // メトリクスサマリ表示
             summaryEl.innerHTML = `
                 <div class="bg-slate-900 p-2.5 rounded border border-slate-800 text-center">
                     <span class="text-[10px] text-slate-500 block">HTTP STATUS</span>
@@ -404,7 +447,6 @@
                 </div>
             `;
 
-            // 生レスポンス表示（JSON整形または生テキスト）
             let formattedBody = lastBodyText;
             try {
                 const parsed = JSON.parse(lastBodyText);
@@ -427,7 +469,7 @@
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>"']/g, function(m) {
-                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             });
         }
     </script>
