@@ -13,10 +13,25 @@ spec:
       labels:
         app: isucon-app
     spec:
+      initContainers:
+        - name: builder
+          image: golang:1.22-alpine
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cp -r /src-cm/* /tmp/src/
+              cd /tmp/src
+              CGO_ENABLED=0 GOOS=linux go build -o /app/server .
+          volumeMounts:
+            - name: source
+              mountPath: /src-cm
+            - name: app-bin
+              mountPath: /app
       containers:
         - name: app
-          image: isucon-app:latest
-          imagePullPolicy: IfNotPresent
+          image: alpine:3.19
+          command: ["/app/server"]
           env:
             - name: MYSQL_HOST
               value: "isucon-mysql"
@@ -33,6 +48,9 @@ spec:
               name: http
             - containerPort: 6060
               name: pprof
+          volumeMounts:
+            - name: app-bin
+              mountPath: /app
           resources:
             requests:
               cpu: "200m"
@@ -46,3 +64,9 @@ spec:
               port: 8000
             initialDelaySeconds: 3
             periodSeconds: 3
+      volumes:
+        - name: source
+          configMap:
+            name: isucon-app-source
+        - name: app-bin
+          emptyDir: {}

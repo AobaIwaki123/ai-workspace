@@ -2,6 +2,7 @@ resources:
   - mysql-configmap.yml
   - mysql-deployment.yml
   - mysql-service.yml
+  - app-configmap.yml
   - app-deployment.yml
   - app-service.yml
   - nginx-configmap.yml
