@@ -8,7 +8,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	_ "net/http/pprof"
+	"net/http/pprof"
 	"os"
 	"regexp"
 	"strconv"
@@ -191,6 +191,13 @@ func main() {
 	mux.HandleFunc("/api/posts", handleGetPosts)
 	mux.HandleFunc("/api/posts/", handleGetPostDetail)
 	mux.HandleFunc("/api/heavy-calc", handleHeavyCalc)
+
+	// pprof ハンドラをメイン mux にも登録
+	mux.HandleFunc("/debug/pprof/", pprof.Index)
+	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
 	// 静的フロントエンド配信 (index.html)
 	if subFS, err := fs.Sub(publicFS, "public"); err == nil {
