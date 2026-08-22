@@ -34,7 +34,9 @@ restart:
 
 clean-logs:
 	@echo "==> ログをクリアします..."
-	@rm -f logs/nginx/access.log logs/mysql/mysql-slow.log
+	@mkdir -p logs/nginx logs/mysql
+	@: > logs/nginx/access.log
+	@: > logs/mysql/mysql-slow.log
 	@docker compose exec -T nginx nginx -s reopen || true
 	@docker compose exec -T mysql mysql -u root -proot -e "FLUSH SLOW LOGS;" || true
 	@echo "==> ログクリア完了！"
