@@ -1,97 +1,38 @@
-# GitHub Copilot CI Integration Examples
+# ai-workspace
 
-このリポジトリには、GitHub ActionsからGitHub Copilotを呼び出す様々な例が含まれています。
+AIと協業するためのワークスペース集
 
-## ワークフロー
+## 構成
 
-### 1. 基本的なCopilot CI (`.github/workflows/copilot-ci.yml`)
+- **`AGENTS.md`**: 全体規約および進捗・セキュリティ管理ルール
+- **`presets/`**: 共通プリセット集
+  - [`presets/permissions.json`](presets/permissions.json): Antigravity用安全コマンド許可・禁止プリセット
+- **`.agents/`**: Antigravityワークスペース設定・スキル
+  - `.agents/settings.json`: プロジェクト別設定（コマンドAllowlist/Denylist）
+  - `.agents/skills/auto-allow-command/`: コマンド許可プロンプト頻発時に自動でAllowlist登録を提案・実行するスキル
+- **`copilot-ci/`**: GitHub Copilot を CI/CD パイプラインから呼び出す仕組みの検証・実装
 
-- PR作成時の自動コードレビュー
-- 手動実行でのカスタムプロンプト実行
+---
 
-### 2. PR アシスタント (`.github/workflows/copilot-pr-assistant.yml`)
+## 権限・セキュリティ設定 (Antigravity Permissions)
 
-- PR説明の自動生成
-- `/copilot <prompt>` コメントへの自動応答
-- 変更ファイルごとの改善提案
+本リポジトリでは、日常の開発作業で頻出する安全なコマンド（Git状態確認、リント、テスト、ビルド等）を事前定義したプリセットを用意しています。
 
-## ヘルパースクリプト (`scripts/copilot-ci.sh`)
+### 1. プロジェクト設定の適用
+`.agents/settings.json` に設定された Allowlist は本プロジェクト内で自動的に有効になります。
 
-ローカルやCI内で簡単にCopilotを呼び出せるCLIツール。
+### 2. グローバル設定への反映
+マシン全体（全リポジトリ共通）に反映したい場合は以下のいずれかで適用できます:
+- **TUI**: チャット欄で `/permissions` を実行して設定
+- **スクリプト**:
+  ```bash
+  ./.agents/skills/auto-allow-command/scripts/add-permission.sh "git status"
+  ```
 
-### 使い方
+---
 
-```bash
-# 一般的な質問
-./scripts/copilot-ci.sh suggest "How to optimize Docker builds?"
+## スキル (Skills)
 
-# ファイルの説明
-./scripts/copilot-ci.sh explain src/main.py
-
-# コードレビュー
-./scripts/copilot-ci.sh review src/api.ts --pr 42
-
-# テスト生成
-./scripts/copilot-ci.sh test src/utils.ts
-
-# バグ修正提案
-./scripts/copilot-ci.sh fix src/buggy.py
-
-# コミットメッセージ生成
-./scripts/copilot-ci.sh commit
-
-# PR説明生成
-./scripts/copilot-ci.sh pr-description origin/main
-```
-
-## セットアップ
-
-1. GitHub CLI (`gh`) をインストール
-2. Copilot拡張をインストール:
-   ```bash
-   gh extension install github/gh-copilot
-   ```
-3. 認証:
-   ```bash
-   gh auth login
-   ```
-
-## GitHub Actions での使用
-
-ワークフロー内で直接使用:
-
-```yaml
-- name: Run Copilot
-  env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  run: |
-    gh extension install github/gh-copilot
-    gh copilot suggest -t shell "Review this code" --repo ${{ github.repository }} --pr ${{ github.event.pull_request.number }}
-```
-
-またはヘルパースクリプトを使用:
-
-```yaml
-- name: Run Copilot via script
-  env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  run: |
-    ./scripts/copilot-ci.sh review src/main.py --repo ${{ github.repository }} --pr ${{ github.event.pull_request.number }}
-```
-
-## 必要な権限
-
-ワークフローで以下の権限が必要:
-
-```yaml
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-```
-
-## 注意事項
-
-- `gh copilot` は GitHub Copilot サブスクリプションが必要
-- API制限あり（分あたりのリクエスト数）
-- PRコメントへの応答は `issue_comment` イベントでトリガー
+### `auto-allow-command`
+- **目的**: コマンド実行時の許可プロンプトを検知し、安全性を判定した上で Allowlist（`.agents/settings.json` またはグローバル設定）への追加を提案・反映するスキル。
+- **配置**: [`.agents/skills/auto-allow-command/`](.agents/skills/auto-allow-command/)
