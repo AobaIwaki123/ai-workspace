@@ -1,0 +1,77 @@
+# ==========================================
+# ISUCON 秘伝のMakefile テンプレート (Go & TypeScript/Node.js 対応)
+# ==========================================
+
+# 言語設定 (go または node)
+LANG_MODE := go
+APP_SERVICE := isucon-app.$(LANG_MODE).service
+
+NGINX_LOG := /var/log/nginx/access.log
+MYSQL_SLOW_LOG := /var/log/mysql/mysql-slow.log
+ALP_MATCH := "/api/users/[0-9]+,/api/items/[0-9]+"
+
+.PHONY: help deploy build-go build-node build restart bench-prepare alp slow pprof log-off status
+
+help:
+	@echo "利用可能なコマンド:"
+	@echo "  make deploy         - git pull, build, bench-prepare を一括実行"
+	@echo "  make bench-prepare  - ログクリア & 全サービス再起動 (ベンチマーク準備)"
+	@echo "  make alp            - alpでNginxアクセスログを集計 (sum降順)"
+	@echo "  make alp-avg        - alpでNginxアクセスログを集計 (avg降順)"
+	@echo "  make slow           - pt-query-digestでスロークエリを集計"
+	@echo "  make pprof          - Goのpprofプロファイルを30秒取得してWeb表示"
+	@echo "  make log-off        - 競技終了前: 全ログをOFFにして再起動"
+	@echo "  make status         - サービス稼働状態の確認"
+
+deploy:
+	git pull origin main
+	$(MAKE) build
+	$(MAKE) bench-prepare
+
+build:
+ifeq ($(LANG_MODE),go)
+	$(MAKE) build-go
+else
+	$(MAKE) build-node
+endif
+
+build-go:
+	cd /home/isucon/webapp/go && go build -o /home/isucon/webapp/go/app .
+
+build-node:
+	cd /home/isucon/webapp/node && npm run build
+
+bench-prepare:
+	@echo "==> ログローテート & サービス再起動..."
+	@sudo rm -f $(NGINX_LOG)
+	@sudo rm -f $(MYSQL_SLOW_LOG)
+	@sudo systemctl restart nginx
+	@sudo systemctl restart mysql
+	@sudo systemctl restart $(APP_SERVICE)
+	@echo "==> ベンチマーク準備完了！"
+
+alp:
+	@sudo alp ltsv --file=$(NGINX_LOG) --sort=sum -r -m $(ALP_MATCH)
+
+alp-avg:
+	@sudo alp ltsv --file=$(NGINX_LOG) --sort=avg -r -m $(ALP_MATCH)
+
+slow:
+	@sudo pt-query-digest $(MYSQL_SLOW_LOG) | head -n 40
+
+pprof:
+	go tool pprof -http=0.0.0.0:1080 http://localhost:6060/debug/pprof/profile?seconds=30
+
+log-off:
+	@echo "==> 競技終了前: ログ無効化 & 再起動"
+	@sudo sed -i -e 's/slow_query_log = 1/slow_query_log = 0/' /etc/mysql/mysql.conf.d/mysqld.cnf || true
+	@sudo sed -i -e 's/access_log \/var\/log\/nginx\/access.log ltsv;/access_log off;/' /etc/nginx/nginx.conf || true
+	@sudo systemctl restart nginx
+	@sudo systemctl restart mysql
+	@sudo systemctl restart $(APP_SERVICE)
+	@echo "==> 全ログOFF & 再起動完了！"
+
+status:
+	sudo systemctl status $(APP_SERVICE) --no-pager
+	sudo systemctl status nginx --no-pager
+	sudo systemctl status mysql --no-pager

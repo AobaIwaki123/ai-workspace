@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - app
+    restart: always
+
+  app:
+    build:
+      context: ./app-go
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:6060:6060" # pprof用ポート
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=isucon
+      - MYSQL_PASSWORD=isucon
+      - MYSQL_DATABASE=isucon
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: always
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=isucon
+      - MYSQL_USER=isucon
+      - MYSQL_PASSWORD=isucon
+    volumes:
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./mysql/initdb.d:/docker-entrypoint-initdb.d:ro
+      - ./logs/mysql:/var/log/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "isucon", "-pisucon"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    restart: always
