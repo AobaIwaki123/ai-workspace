@@ -22,6 +22,7 @@
 | **9** | **バッチ内エスケープ崩れ** | 1ファイル完結バッチ内で引用符や特殊文字が壊れる | `cmd.exe` のパーサーが `^` や `"` や `()` を誤解釈して PowerShell に渡る | バッチが `%TEMP%` にクリーンな `.ps1` を自己生成して実行する「自己生成パターン」で根絶 |
 | **10** | **PowerShell Set-Content** | `Set-Content -Encoding` パラメータがバージョンにより非互換で落ちる | PowerShell 5.1/7.x で `-Encoding` の受け入れ値（UTF8, utf8NoBOM 等）や存在差異がある | PowerShell の `Set-Content` を使わず、バッチ自身が `(echo ... ) > %USERPROFILE%\.wsl_keepalive.ps1` で直接書き出す方式を採用 |
 | **11** | **mise ツール名指定** | `ubi:cli/cli` 等でアーカイブ内バイナリ名不一致エラー | `ubi` バックエンドは非推奨となり、リポジトリ名と実行ファイル名（`gh` vs `cli`）の齟齬が起きる | `gh = "latest"`, `ripgrep = "latest"`, `starship = "latest"` など mise 公式標準ネイティブ名で宣言する |
+| **12** | **~/.local/bin PATH未反映** | `agy` や `mise` 実行時に `command not found` | `~/.local/bin` が現在のセッションの `$PATH` に未反映（ログインシェル再起動待ち） | `~/.bashrc` / `~/.zshrc` に `export PATH="$HOME/.local/bin:$PATH"` を永続化し `source` を促す |
 
 ---
 

@@ -19,17 +19,28 @@ fi
 
 export PATH="$HOME/.local/bin:$PATH"
 
-echo "=== [2/4] Configuring Shell Activation ==="
-# Bash
+echo "=== [2/4] Configuring Shell Activation & PATH ==="
+# PATH to ~/.local/bin
+if [[ -f "$HOME/.bashrc" ]] && ! grep -q 'export PATH="\$HOME/\.local/bin:\$PATH"' "$HOME/.bashrc"; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+    echo "Added ~/.local/bin to PATH in ~/.bashrc"
+fi
+
+# Bash mise activation
 if [[ -f "$HOME/.bashrc" ]] && ! grep -q 'mise activate bash' "$HOME/.bashrc"; then
     echo 'eval "$($HOME/.local/bin/mise activate bash)"' >> "$HOME/.bashrc"
     echo "Added mise activation to ~/.bashrc"
 fi
 
 # Zsh (存在する場合)
-if [[ -f "$HOME/.zshrc" ]] && ! grep -q 'mise activate zsh' "$HOME/.zshrc"; then
-    echo 'eval "$($HOME/.local/bin/mise activate zsh)"' >> "$HOME/.zshrc"
-    echo "Added mise activation to ~/.zshrc"
+if [[ -f "$HOME/.zshrc" ]]; then
+    if ! grep -q 'export PATH="\$HOME/\.local/bin:\$PATH"' "$HOME/.zshrc"; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
+    fi
+    if ! grep -q 'mise activate zsh' "$HOME/.zshrc"; then
+        echo 'eval "$($HOME/.local/bin/mise activate zsh)"' >> "$HOME/.zshrc"
+        echo "Added mise activation to ~/.zshrc"
+    fi
 fi
 
 eval "$("$HOME/.local/bin/mise" activate bash)"
