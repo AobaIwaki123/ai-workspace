@@ -249,6 +249,16 @@
 
 ---
 
+### 2026-08-29: 単一統合手順書 (Runbook: SERVER_SETUP_GUIDE.md) の作成
+
+- **目的**: ゼロからの環境再現手順（Windows設定 -> WSL2 -> タスクスケジューラ常駐 -> mise -> SSH堅牢化）を1つのマスター手順書に集約する
+- **作成ファイル**:
+  - [**`wsl-server/SERVER_SETUP_GUIDE.md`**](../SERVER_SETUP_GUIDE.md): 完全再現用単一手順書 (Runbook)
+- **成果**:
+  - 試行錯誤ログの知見（`note/04`）を網羅し、ゼロからのクリーンインストール手順を一発で実行可能な Runbook として完成。
+
+---
+
 ### 2026-08-29: Windows Update 再起動における完全ハンズフリー（PIN 入力不要）自動起動の実機検証
 
 - **目的**: Windows Update によるホスト OS 再起動時に、Windows 側のログイン画面（PIN 入力前）の状態で WSL2 および SSH サーバーが自律起動するかを検証
@@ -263,3 +273,68 @@
   - **ARSO (Automatic Restart Sign-On / サインイン情報の自動再開)**: Windows 10/11 は再起動時、直前のユーザーセッションをバックグラウンドで自動初期化（事前ログオン）する仕様を持つ。
   - これにより、タスクスケジューラの `AtLogOn` トリガーが物理的な PIN 入力前に自動発火し、`WSL-AutoStart-Server` が正常実行されて WSL2 インスタンスが起動した。
   - これにより、**物理電源オンや OS 更新後の放置状態でも 100% ヘッドレスサーバーとして稼働可能** であることが実機で実証された。
+
+---
+
+### 2026-08-29: 仕様・実測アロケーションに基づくサーバー性能・ボトルネック評価の実施
+
+- **目的**: 負荷ベンチマークを実行せず、カーネルパラメータ、ハードウェアアーキテクチャ、仮想化サブシステム、I/O スケジューラ、ネットワークスタック等の仕様および実測アロケーションからサーバー性能特性とボトルネック要因を網羅的に調査・評価する
+- **作成ファイル**:
+  - [**`wsl-server/note/07_server_hardware_and_spec_evaluation.md`**](07_server_hardware_and_spec_evaluation.md): 性能評価・仕様分析レポート
+- **主要な調査結果**:
+  1. **CPU / 計算能力**:
+     - AMD Ryzen 5 4600H (Zen 2, 7nm, 6C/12T, 3.0~4.0GHz)。AVX2, SHA-NI, AES-NI 対応。L3 キャッシュ 4MB。
+     - Constant/Reliable TSC による低オーバーヘッド時刻取得。主要脆弱性（Meltdown/L1TF/MDS等）ハードウェア無害。
+  2. **メモリサブシステム**:
+     - 7.5 GiB (WSL2 割当) / 2.0 GiB Swap。現時点で約 6.6 GiB (88%) の空き余力。
+     - `autoMemoryReclaim=gradual` によるホストへの動的返却、THP `[madvise]` 有効。
+  3. **ストレージ & I/O**:
+     - `/dev/sdd` (ext4 VHDX, 最大 1TB, 空き 950GB)。I/O スケジューラ `[none]` (パススルー最適化)、TRIM/discard 有効。
+  4. **ネットワークサブシステム**:
+     - Mirrored モードによるホスト LAN 直結 (192.168.11.15, NAT オーバーヘッド 0)。
+     - 64 TX/RX マルチキュー NIC (`qdisc mq`)、TSO/GSO/GRO ハードウェアオフロード。
+     - エフェメラルポート範囲 `44620 - 48715` (4095 ポート) の仕様を確認（大量外部通信時の留意点）。
+  5. **用途別適性**:
+     - Go/Rust/Node.js/Python による Web API、ISUCON 競技検証、小〜中規模 DB/Redis 基盤に極めて高い適性を確認。
+
+---
+
+### 2026-08-29: GPU (GTX 1650 Ti)・LLM (llama.cpp)・ストレージ実機ベンチマークの実施
+
+- **目的**: 実際の GPU テンソル演算能力、`llama.cpp` による LLM 推論速度、および ext4 vs 9p の I/O 速度を定量計測する
+- **作成ファイル**:
+  - [**`wsl-server/note/08_performance_benchmark_results.md`**](08_performance_benchmark_results.md): ベンチマーク測定結果レポート
+  - [**`wsl-server/scripts/gpu_benchmark.py`**](../scripts/gpu_benchmark.py): PyTorch CUDA 行列演算・PCIe 転送帯域ベンチマーク
+  - [**`wsl-server/scripts/disk_benchmark.sh`**](../scripts/disk_benchmark.sh): ストレージ I/O 計測スクリプト
+- **主要な実測データ**:
+  1. **GPU テンソル演算 (PyTorch 2.6 / CUDA 12.4)**:
+     - 4096×4096 FP32 行列積: **1,785 GFLOPS** (76.99 ms)
+     - CPU (257 GFLOPS / 534 ms) 比で **6.9 倍高速**
+     - Host → GPU PCIe 転送帯域: **5.25 GB/s**
+  2. **LLM 推論 (`llama.cpp` / Qwen2.5 0.5B Instruct Q4_K_M)**:
+     - CPU 推論 (ngl=0): Prompt 245.8 t/s, Generation 21.6 t/s
+     - GPU オフロード (ngl=99): Prompt 247.8 t/s, **Generation 59.8 t/s** (CPU 比 **2.8 倍高速**)
+     - 対話生成実測 (`llama-cli`): **52.9 tokens/sec** での滑らかなストリーミング出力を確認
+  3. **ストレージ I/O (256MB Sequential)**:
+     - ext4 ネイティブ: Write 535 MB/s, Read 7.1 GB/s
+     - Windows 9p マウント: Write 147 MB/s, Read 211 MB/s
+     - ext4 が Write で 3.6 倍、Read で 33 倍高速であることを実証
+
+---
+
+### 2026-08-29: 柔軟なGPUサービス基盤（Storage Guard）構築と英語カタカナ読み変換の実証
+
+- **目的**: メイン PC のストレージ圧迫を防ぎつつ柔軟にモデルを切り替え可能な GPU API 基盤（OpenAI 互換）を構築し、英単語・略語（AKB -> エーケービー）の日本語カタカナ読み変換機能を実証する
+- **作成ファイル**:
+  - [**`wsl-server/note/09_gpu_phonetic_service_and_flexible_architecture.md`**](09_gpu_phonetic_service_and_flexible_architecture.md): サービス基盤 & 英語カタカナ変換仕様書
+  - [**`wsl-server/scripts/manage-gpu-service.sh`**](../scripts/manage-gpu-service.sh): ストレージ保護・Hot-Swap 切り替え・API テスト管理スクリプト
+  - [**`wsl-server/gpu-service.env`**](../gpu-service.env): GPU サービス環境設定ファイル
+- **主要な成果**:
+  1. **ストレージ防衛（Storage Guard）**:
+     - モデル保存を `models/` に統一し、常時 1 モデル（約 1GB）のみを保持。
+     - モデル切り替え時に旧モデル自動削除と `fstrim -v /` による Windows SSD 空きブロックの即時回収を自動化。
+  2. **英語 -> カタカナ読み変換の実証**:
+     - Qwen2.5 1.5B (VRAM 1.1GB) にアルファベット頭字語ルールを与えた Few-shot プロンプティングにより、「AKB, AWS, USB, CI/CD, iPhone, Kubernetes」に対して「エーケービー, エーダブリューエス, ユーエスビー, シーアイシーディー, アイフォーン, クバネティス」を 100% 正確に出力。
+  3. **OpenAI 互換 API 稼働**:
+     - `http://192.168.11.15:8080/v1/chat/completions` で LAN 公開。自宅 k8s クラスタの `ExternalName` Service からの呼び出し設定を確立。
+
