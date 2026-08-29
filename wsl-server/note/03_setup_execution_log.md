@@ -280,3 +280,27 @@
   5. **用途別適性**:
      - Go/Rust/Node.js/Python による Web API、ISUCON 競技検証、小〜中規模 DB/Redis 基盤に極めて高い適性を確認。
 
+---
+
+### 2026-08-29: GPU (GTX 1650 Ti)・LLM (llama.cpp)・ストレージ実機ベンチマークの実施
+
+- **目的**: 実際の GPU テンソル演算能力、`llama.cpp` による LLM 推論速度、および ext4 vs 9p の I/O 速度を定量計測する
+- **作成ファイル**:
+  - [**`wsl-server/note/08_performance_benchmark_results.md`**](08_performance_benchmark_results.md): ベンチマーク測定結果レポート
+  - [**`wsl-server/scripts/gpu_benchmark.py`**](../scripts/gpu_benchmark.py): PyTorch CUDA 行列演算・PCIe 転送帯域ベンチマーク
+  - [**`wsl-server/scripts/disk_benchmark.sh`**](../scripts/disk_benchmark.sh): ストレージ I/O 計測スクリプト
+- **主要な実測データ**:
+  1. **GPU テンソル演算 (PyTorch 2.6 / CUDA 12.4)**:
+     - 4096×4096 FP32 行列積: **1,785 GFLOPS** (76.99 ms)
+     - CPU (257 GFLOPS / 534 ms) 比で **6.9 倍高速**
+     - Host → GPU PCIe 転送帯域: **5.25 GB/s**
+  2. **LLM 推論 (`llama.cpp` / Qwen2.5 0.5B Instruct Q4_K_M)**:
+     - CPU 推論 (ngl=0): Prompt 245.8 t/s, Generation 21.6 t/s
+     - GPU オフロード (ngl=99): Prompt 247.8 t/s, **Generation 59.8 t/s** (CPU 比 **2.8 倍高速**)
+     - 対話生成実測 (`llama-cli`): **52.9 tokens/sec** での滑らかなストリーミング出力を確認
+  3. **ストレージ I/O (256MB Sequential)**:
+     - ext4 ネイティブ: Write 535 MB/s, Read 7.1 GB/s
+     - Windows 9p マウント: Write 147 MB/s, Read 211 MB/s
+     - ext4 が Write で 3.6 倍、Read で 33 倍高速であることを実証
+
+

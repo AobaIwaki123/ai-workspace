@@ -72,6 +72,7 @@ flowchart TD
   - [`note/05_declarative_tool_management.md`](note/05_declarative_tool_management.md): 宣言的パッケージ・ツール管理ツールの選定比較
   - [`note/06_dotfiles_and_git_config_integration.md`](note/06_dotfiles_and_git_config_integration.md): Dotfiles & Git Config 統合パターンの比較
   - [`note/07_server_hardware_and_spec_evaluation.md`](note/07_server_hardware_and_spec_evaluation.md): ハードウェア仕様・カーネル・仮想化サブシステムに基づく性能評価レポート
+  - [`note/08_performance_benchmark_results.md`](note/08_performance_benchmark_results.md): GPU (GTX 1650 Ti)・LLM (`llama.cpp`)・ストレージ (ext4 vs 9p) 実機ベンチマーク測定結果レポート
 
 ---
 
@@ -93,10 +94,14 @@ flowchart TD
 - [x] Antigravity CLI (`agy`) のインストール & Google OAuth 認証完了
 - [x] SSH セキュリティの強化（`harden-ssh.sh`）および公開鍵認証必須化完了
 - [x] 統合手順書（`SERVER_SETUP_GUIDE.md`）の初版作成完了
-- [x] **[NEW] 仕様・実測観測ベースの性能評価レポート（`note/07`）の作成完了**:
-  - CPU (Ryzen 5 4600H / 6C12T / Zen 2), メモリ (7.5GB / gradual reclaim), ストレージ (ext4 / none scheduler / TRIM), ネットワーク (Mirrored / 64キュー NIC / エフェメラルポート 4095) の多角分析完了
+- [x] 仕様・実測観測ベースの性能評価レポート（`note/07`）の作成完了
+- [x] **[NEW] 実機ベンチマーク（GPU / LLM / ストレージ I/O）の測定完了 (`note/08`)**:
+  - GPU 行列演算: 1,785 GFLOPS (CPU比 6.9倍高速)
+  - `llama.cpp` LLM 推論 (Qwen2.5 0.5B Q4): **59.8 tokens/sec** (対話生成 52.9 t/s)
+  - ストレージ I/O: ext4 Write 535 MB/s, Read 7.1 GB/s (9p 比 3.6〜33倍高速)
 - [ ] **[保留] Docker / Docker Compose（コンテナ基盤）のセットアップ**:
   - ユーザー指示により一旦不要として保留（将来必要時に着手）
+
 
 
 
