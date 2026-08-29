@@ -172,11 +172,35 @@
 
 ---
 
-### [次回作業枠]: 基本開発ツール & パッケージの導入
+---
 
-- **目的**: 
-- **実行したコマンド**:
-- **メモ**:
+### 2026-08-29: Antigravity CLI (`agy`) の導入と初期認証
+
+- **目的**: WSL Ubuntu 環境上で Antigravity CLI (`agy`) をセットアップし、エージェント協業環境を整える
+- **事前準備**:
+  ```bash
+  # 必須ツールの確認・導入
+  sudo apt update && sudo apt install -y curl git jq
+  ```
+- **インストール手順**:
+  ```bash
+  # 公式インストーラーの実行
+  curl -fsSL https://antigravity.google/cli/install.sh | bash
+  ```
+- **環境変数 PATH の設定**:
+  ```bash
+  # PATH の反映（~/.bashrc に追加）
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+  source ~/.bashrc
+
+  # インストール確認
+  agy --version
+  ```
+- **リモート SSH 環境における初回認証フロー**:
+  1. `agy` を起動
+  2. ヘッドレス / SSH 環境のため、ターミナルに「Google 認証用 URL」が表示される
+  3. ローカル端末（Mac / PC）のブラウザでその URL を開き、Google アカウントでログイン・認証
+  4. ターミナル側で認証が自動検知され、CLI が起動完了
 
 ---
 
