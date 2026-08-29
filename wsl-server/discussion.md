@@ -65,6 +65,7 @@ flowchart TD
 - [**`ADR-0001: Mirrored ネットワークモードの採用`**](adr/0001-mirrored-network-mode.md) - ポート転送不要・ホストLAN IP直結によるサーバーネットワーク基盤の標準化
 - [**`ADR-0002: WSL 常駐化および内部再起動時の自動復旧（Keep-Alive Loop）の採用`**](adr/0002-wsl-keepalive-and-auto-recovery.md) - Ubuntu内部reboot/停止時にも2秒で自動再起動する監視ループタスクの標準化
 - [**`ADR-0003: mise による言語ランタイム・CLIツールの宣言的管理の採用`**](adr/0003-declarative-tool-management-with-mise.md) - mise.toml による全開発ツール・ランタイムの一括宣言管理の標準化
+- [**`ADR-0004: サプライチェーン攻撃対策としてのバージョン遅延（7-day Cooldown）および Lockfile 検証の採用`**](adr/0004-supply-chain-security-and-version-cooldown.md) - latest禁止・7日経過安定版固定・チェックサム検証の標準化
 
 
 
