@@ -20,11 +20,11 @@
 | Phase | 項目 | 主な内容 | ステータス | 成果物 |
 | :--- | :--- | :--- | :--- | :--- |
 | **Phase 1** | **要件定義・前提整理** | 構築目的、ディストリビューション選定、ハードウェア要件、ネットワーク要件の確定 | [進行中] | `note/01_requirements_and_architecture.md` |
-| **Phase 2** | **WSL2 基盤セットアップ** | Windows機能の有効化、WSL2インストール、`.wslconfig` / `/etc/wsl.conf`（systemd 有効化等）の設定 | [未着手] | `note/02_wsl_base_setup.md` |
-| **Phase 3** | **Linux 基本環境 & セキュリティ** | パッケージ更新、ユーザー・sudo設定、SSH鍵認証、UFWファイアウォール設定 | [未着手] | `note/03_linux_hardening_and_ssh.md` |
-| **Phase 4** | **ネットワーク & Windows自動起動** | ネットワーク方式選定（Mirrored vs NAT/ポートフォワーディング）、Windows起動時のWSL/サービス自動起動（タスクスケジューラ / systemd） | [未着手] | `note/04_network_and_autostart.md`, `adr/0001-network-mode.md` |
-| **Phase 5** | **サーバーミドルウェア構築** | Docker / Podman / Webサーバー / データベース等の配置、ファイルシステム性能配慮（WSL内ext4 vs `/mnt/c`） | [未着手] | `note/05_middleware_and_storage.md` |
-| **Phase 6** | **統合手順書 (Runbook) の作成 & 検証** | 各フェーズの手順を集約し、単一のマスター手順書 `SERVER_SETUP_GUIDE.md` として完成・動作検証 | [未着手] | `SERVER_SETUP_GUIDE.md` |
+| **Phase 2** | **WSL2 基盤セットアップ** | Windows機能有効化、WSL2インストール、`.wslconfig` / `/etc/wsl.conf` 設定 | [先行実施中] | `note/02_ssh_server_connection_and_current_state.md` |
+| **Phase 3** | **Linux 基本環境 & SSH 接続** | パッケージ更新、SSHサーバー起動、ポート公開・外部接続確立 | [接続完了] | `note/02_ssh_server_connection_and_current_state.md` |
+| **Phase 4** | **実機セットアップ作業 & 生ログ記録** | 開発環境、Docker/Podman、常駐化、自動起動などの作業ログ逐次蓄積 | [進行中] | `note/03_setup_execution_log.md` |
+| **Phase 5** | **ネットワーク & Windows 自動起動** | Mirrored vs NAT 最適化、Windows 起動時自動立ち上げ、設定クリーンアップ | [未着手] | `note/04_network_and_autostart.md`, `adr/0001-network-mode.md` |
+| **Phase 6** | **統合手順書 (Runbook) の清書 & 検証** | 試行錯誤ログをもとに無駄を削ぎ落とした単一のマスター手順書 `SERVER_SETUP_GUIDE.md` を完成 | [未着手] | `SERVER_SETUP_GUIDE.md` |
 
 ---
 
@@ -41,7 +41,7 @@ flowchart TD
     subgraph WSL2Instance["WSL2 (Ubuntu 24.04 / 22.04 LTS)"]
         WSLConf["/etc/wsl.conf<br>(systemd: true)"]
         Systemd["systemd (PID 1)"]
-        SSHService["SSH サーバー (sshd)"]
+        SSHService["SSH サーバー (sshd)<br>[接続確認済み]"]
         ServerApp["サーバーアプリケーション<br>(Docker / Web / DB / API)"]
     end
 
@@ -54,15 +54,15 @@ flowchart TD
     WSLConf --> Systemd
     Systemd --> SSHService
     Systemd --> ServerApp
-    DevPC -->|"SSH / HTTP / API 接続"| WinFW
-    WinFW -->|"ポートフォワード / Mirrored Mode"| WSL2Instance
+    DevPC -->|"SSH 接続 [疎通完了]"| WinFW
+    WinFW -->|"ポート転送 / Mirrored Mode"| WSL2Instance
 ```
 
 ---
 
 ## 決定事項 (ADR一覧)
 
-- 未策定（Phase 4 のネットワーク方式・自動起動方式の検証後に策定予定）
+- 未策定（ネットワーク方式・自動起動方式の検証後に策定予定）
 
 ---
 
@@ -70,6 +70,9 @@ flowchart TD
 
 - [x] Space の作成および初期レイアウトの配置 (`wsl-server`)
 - [x] 全体ロードマップおよびアーキテクチャ概要の策定 (`discussion.md`)
-- [ ] Phase 1: 構築目的・対象ディストリビューション・用途（Web/Docker/DB等）のヒアリングと要件定義 (`note/01_requirements_and_architecture.md`)
-- [ ] Phase 2: WSL2 基本セットアップ手順の検証とメモ作成
+- [x] SSH サーバーの接続確認および現状構成の把握枠組み作成 (`note/02_ssh_server_connection_and_current_state.md`)
+- [x] 今後のセットアップ記録用作業ログドキュメントの作成 (`note/03_setup_execution_log.md`)
+- [ ] 続いて実施する PC / WSL セットアップ作業（パッケージ導入、ツール、Docker等）のログ記録
+- [ ] 試行錯誤した設定（不要な設定・ゴミ）の洗い出しとクリーンな統合手順書（`SERVER_SETUP_GUIDE.md`）への清書
+
 
