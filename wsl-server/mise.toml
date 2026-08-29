@@ -1,5 +1,5 @@
 # wsl-server/mise.toml
-# WSL サーバー用 宣言的ツール・ランタイム定義ファイル
+# WSL サーバー用 宣言的ツール・ランタイム定義ファイル (mise ネイティブ標準記法)
 
 [tools]
 # --- 言語ランタイム & パッケージマネージャ ---
@@ -8,16 +8,16 @@ go = "latest"                  # Go
 python = "3.12"                # Python 3.12
 uv = "latest"                  # 超高速 Python パッケージマネージャ
 
-# --- 開発・運用必須 CLI ツール (GitHub Releases からバイナリ直接取得) ---
-"ubi:cli/cli" = "latest"             # GitHub CLI (gh)
-"ubi:jqlang/jq" = "latest"           # JSON プロセッサ (jq)
-"ubi:BurntSushi/ripgrep" = "latest"  # 高速 grep (rg)
-"ubi:sharkdp/fd" = "latest"          # 高速 find (fd)
-"ubi:junegunn/fzf" = "latest"        # 曖昧検索 (fzf)
-"ubi:sharkdp/bat" = "latest"         # シンタックスハイライト付き cat (bat)
-"ubi:eza-community/eza" = "latest"   # モダンな ls (eza)
-"ubi:dandavison/delta" = "latest"    # Git 差分ビューア (delta)
-"ubi:starship/starship" = "latest"   # 高速プロンプト (starship)
+# --- 開発・運用必須 CLI ツール (mise ネイティブプラグイン管理) ---
+gh = "latest"                  # GitHub CLI (gh)
+jq = "latest"                  # JSON プロセッサ (jq)
+ripgrep = "latest"             # 高速 grep (rg)
+fd = "latest"                  # 高速 find (fd)
+fzf = "latest"                 # 曖昧検索 (fzf)
+bat = "latest"                 # シンタックスハイライト付き cat (bat)
+eza = "latest"                 # モダンな ls (eza)
+delta = "latest"               # Git 差分ビューア (delta)
+starship = "latest"            # 高速プロンプト (starship)
 
 [settings]
 experimental = true
