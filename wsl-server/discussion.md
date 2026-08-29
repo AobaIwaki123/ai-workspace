@@ -19,11 +19,11 @@
 
 | Phase | 項目 | 主な内容 | ステータス | 成果物 |
 | :--- | :--- | :--- | :--- | :--- |
-| **Phase 1** | **要件定義・前提整理** | 構築目的、ディストリビューション選定、ハードウェア要件、ネットワーク要件の確定 | [進行中] | `note/01_requirements_and_architecture.md` |
-| **Phase 2** | **WSL2 基盤セットアップ** | Windows機能有効化、WSL2インストール、`.wslconfig` / `/etc/wsl.conf` 設定 | [先行実施中] | `note/02_ssh_server_connection_and_current_state.md` |
-| **Phase 3** | **Linux 基本環境 & SSH 接続** | パッケージ更新、SSHサーバー起動、ポート公開・外部接続確立 | [接続完了] | `note/02_ssh_server_connection_and_current_state.md` |
-| **Phase 4** | **実機セットアップ作業 & 生ログ記録** | 開発環境、Docker/Podman、常駐化、自動起動などの作業ログ逐次蓄積 | [進行中] | `note/03_setup_execution_log.md` |
-| **Phase 5** | **ネットワーク & Windows 自動起動** | Mirrored vs NAT 最適化、Windows 起動時自動立ち上げ、設定クリーンアップ | [未着手] | `note/04_network_and_autostart.md`, `adr/0001-network-mode.md` |
+| **Phase 1** | **要件定義・前提整理** | 構築目的、ディストリビューション選定、ハードウェア要件、ネットワーク要件の確定 | [完了] | `note/01_requirements_and_architecture.md` |
+| **Phase 2** | **WSL2 基盤セットアップ** | Windows機能有効化、WSL2インストール、`.wslconfig` / `/etc/wsl.conf` 設定 | [完了] | `note/02_ssh_server_connection_and_current_state.md` |
+| **Phase 3** | **Linux 基本環境 & SSH 接続** | パッケージ更新、SSHサーバー起動、Mirrored Mode 接続確立 | [完了] | `note/02_ssh_server_connection_and_current_state.md`, `adr/0001` |
+| **Phase 4** | **自動常駐・復旧 (Keep-Alive)** | 内部reboot対応タスクスケジューラ登録、文字コード・エスケープ落とし穴解消 | [確立] | `note/04_troubleshooting_and_lessons_learned.md`, `adr/0002` |
+| **Phase 5** | **実機セットアップ & 生ログ記録** | 開発環境、Docker/Podman、ツール導入などの作業ログ逐次蓄積 | [進行中] | `note/03_setup_execution_log.md` |
 | **Phase 6** | **統合手順書 (Runbook) の清書 & 検証** | 試行錯誤ログをもとに無駄を削ぎ落とした単一のマスター手順書 `SERVER_SETUP_GUIDE.md` を完成 | [未着手] | `SERVER_SETUP_GUIDE.md` |
 
 ---
