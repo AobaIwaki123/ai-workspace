@@ -63,6 +63,8 @@ flowchart TD
 ## 決定事項 (ADR一覧)
 
 - [**`ADR-0001: Mirrored ネットワークモードの採用`**](adr/0001-mirrored-network-mode.md) - ポート転送不要・ホストLAN IP直結によるサーバーネットワーク基盤の標準化
+- [**`ADR-0002: WSL 常駐化および内部再起動時の自動復旧（Keep-Alive Loop）の採用`**](adr/0002-wsl-keepalive-and-auto-recovery.md) - Ubuntu内部reboot/停止時にも2秒で自動再起動する監視ループタスクの標準化
+
 
 ---
 
