@@ -21,18 +21,18 @@
 ### 3.1 ホスト・OS 環境
 | 項目 | 設定値 / 現状 | 備考 |
 | :--- | :--- | :--- |
-| **Windows OS** | Windows 11 / Windows 10 | (要確認) |
+| **Windows OS** | Windows 11 (22H2 / 23H2+) | Mirrored モード利用可能 |
 | **Linux ディストリビューション** | Ubuntu 24.04 LTS (Noble Numbat) | `do-release-upgrade` 実施完了 |
-| **WSL バージョン** | WSL2 | `wsl -l -v` |
-| **systemd 有効化** | 有効 / 無効 | `/etc/wsl.conf` 内 `[boot] systemd=true` |
+| **WSL バージョン** | WSL2 (WSL 2.0.0+) | `wsl --version` |
+| **systemd 有効化** | 有効 (`systemd=true`) | `/etc/wsl.conf` |
 
 ### 3.2 ネットワーク & ポート公開構成
 | 項目 | 設定値 / 現状 | 備考 |
 | :--- | :--- | :--- |
-| **WSL ネットワークモード** | NAT モード / Mirrored モード | `.wslconfig` の `networkingMode` |
-| **SSH ポート番号** | 22 (デフォルト) / カスタムポート (例: 2222) | Windows 側 SSH Server との競合回避有無 |
-| **Windows ポート転送 (NATの場合)** | `netsh interface portproxy` 設定状況 | 外部 LAN からのアクセス時 |
-| **Windows ファイアウォール** | ポート開放規則 (Inbound Rule) 設定状況 | Windows Defender / サードパーティFW |
+| **WSL ネットワークモード** | **Mirrored モード** (`networkingMode=mirrored`) | `%USERPROFILE%\.wslconfig` 設定済み |
+| **SSH ポート番号** | 22 (デフォルト) / カスタムポート | Windows 側 IP と直結 |
+| **Windows ポート転送** | **不要** | Mirrored モードのため `netsh` プロキシ不要 |
+| **Windows ファイアウォール** | ポート 22 受信規則 (Inbound Rule) 許可 | Windows ホスト側で許可 |
 
 ### 3.3 SSH 認証・セキュリティ設定
 | 項目 | 設定値 / 現状 | 備考 |
