@@ -52,30 +52,16 @@
   sudo do-release-upgrade
   ```
 - **発生した事象・課題**:
-  - アップグレード完了後、外部クライアントからの SSH 接続が拒否される（またはタイムアウト/認証失敗する）事象が発生。
-- **調査状況 (Status Check)**:
-  - `ssh.socket`: inactive
-  - `ssh.service`: active (running)
-- **次の切り分けポイント**:
-  1. WSL 内で実際に port 22（または指定ポート）が LISTEN 状態になっているか (`ss -tulpn`)
-  2. WSL 内部でのローカル SSH 接続 (`ssh localhost`) の可否
-  3. WSL の IP アドレス変更に伴う Windows 側 `netsh` ポートプロキシ宛先不一致の有無 (`ip a show eth0`)
-  4. クライアント側でのエラー種別 (`Connection refused` / `Timed out` / `Permission denied`)
-
-  ```bash
-  # 1. 不安定な ssh.socket を停止・無効化
-  sudo systemctl stop ssh.socket
-  sudo systemctl disable ssh.socket
-
-  # 2. 従来の常駐型 ssh.service を有効化・起動
-  sudo systemctl enable --now ssh.service
-
-  # 3. 稼働状態およびポート待ち受けの確認
-  sudo systemctl status ssh
-  sudo ss -tulpn | grep :22
-  ```
-- **統合手順書に向けた知見**:
-  - Ubuntu 24.04 では `ssh.socket` ではなく `ssh.service` を明示的に有効化（`sudo systemctl disable --now ssh.socket && sudo systemctl enable --now ssh.service`）する手順を Runbook に標準組み込みとする。
+  - アップグレード完了後、外部クライアントからの SSH 接続が通らない（PowerShell から `wsl` ターミナルを開くと即座に接続可能になる現象を確認）。
+- **事象のメカニズム・特定結果**:
+  - **WSL2 のライフサイクルと仮想ネットワークのサスペンド**:
+    - `wsl.exe -l -v` で `Running` 表示であっても、インタラクティブセッションやアクティブなプロセスがない場合、WSL2 の仮想ネットワークインターフェース（vEthernet）が省電力/休止状態（Suspend）に入り、Windows ホスト側から WSL への着信パケットが届かなくなることがある。
+    - Windows 上でターミナル（WSL セッション）を開くことで仮想 NIC がアクティブ化（Wake up）され、ポート転送経由での SSH 疎通が回復する。
+- **恒久対策・手順書化に向けた設計要件**:
+  1. **Windows 起動時のバックグラウンド常駐タスク（Keep-Alive）**:
+     - Windows タスクスケジューラにて、ユーザーログオン時またはブート時に `wsl.exe -d Ubuntu -u <user> --exec sleep infinity` 等を非表示（バックグラウンド）で永続実行させ、WSL セッションおよび仮想 NIC を常にアクティブ状態に保つ。
+  2. **Mirrored ネットワークモードの採用（Windows 11 の場合）**:
+     - `.wslconfig` で `networkingMode=mirrored` を指定することで、仮想アダプタ/ポートフォワーディングのサスペンド問題を回避し、Windows ホストの NIC と直接同期させる。
 
 ---
 
