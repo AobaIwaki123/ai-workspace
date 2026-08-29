@@ -111,8 +111,13 @@ flowchart TD
   - Selector なし Service ＋ EndpointSlice によるクラスタ内名前解決の設計
   - Cloudflare Ingress による Zero Trust 外部公開マニフェストの設計
   - ArgoCD Application による GitOps 構成の設計
-- [ ] **[NEXT] `~/k8s-cluster` リポジトリへのマニフェスト適用 & ArgoCD 同期テスト**:
-  - `apps/ai-infrastructure/` マニフェストの反映とクラスタ内疎通確認
+- [ ] **[TASK 1] Benchmark JSON API (`GET /api/benchmarks`) の実装**:
+  - `data/benchmarks.json` を外部から 1ms で参照できる軽量エンドポイントの提供
+- [ ] **[TASK 2] モデル自動評価 & 事前スペック判定 Skill (`model-benchmark`) の作成**:
+  - 4GB VRAM / WSL2 メモリ制約に基づく OOM 事前判定
+  - 類似モデル探索 & ワンコマンド自動ベンチマークパイプラインの統合
+- [ ] **[TASK 3] k0s クラスタへの OpenAI 互換 API サーバーの公開マニフェスト整備 (`k8s-cluster`)**:
+  - `guide/6-llm-gpu-service/` への Service, EndpointSlice, Ingress, ArgoCD マニフェストの配置
 
 
 
