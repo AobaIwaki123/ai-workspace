@@ -98,30 +98,23 @@
 
 ---
 
-### 2026-08-29: WSL 再起動後の自動復旧不可（外部からの SSH 接続不可）課題
+### 2026-08-29: WSL 内部からの再起動（reboot）の挙動と自動復旧の仕組み
 
-- **目的**: OS 再起動後の WSL インスタンス自動復旧および外部 SSH 接続性の確保
-- **発生した事象**:
-  - `do-release-upgrade` 完了に伴う再起動（Restart）後、WSL が停止状態（または未起動状態）となり、外部から SSH 接続できない（自動復旧しない）事象を確認。
-- **原因**:
-  - WSL2 はデフォルトでオンデマンド起動（Windows 側でコマンドやターミナルが叩かれた時に起動）するため、再起動後は Windows 側で `wsl.exe` を叩くトリガーが存在しない限り起動せず、外部からの着信パケットだけでは起動しない。
-- **解決策 (Windows タスクスケジューラによるブート時/ログオン時自動起動)**:
-  - Windows 側で以下の PowerShell（管理者）コマンドを実行し、タスクスケジューラに「Windows 起動時/ログオン時にバックグラウンドで WSL を自動起動・常駐させるタスク」を登録する。
-  ```powershell
-  # タスク名: WSL-AutoStart
-  # 動作: ログオン時に非表示で wsl.exe をバックグラウンド起動し常駐維持
-  $Action = New-ScheduledTaskAction -Execute "wsl.exe" -Argument "-d Ubuntu-24.04 -u root --exec sleep infinity"
-  $Trigger = New-ScheduledTaskTrigger -AtLogOn
-  $Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Highest
-  $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0
-  Register-ScheduledTask -TaskName "WSL-AutoStart" -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings
-  ```
-- **検証**:
-  - タスクの手動実行テスト:
-    ```powershell
-    Start-ScheduledTask -TaskName "WSL-AutoStart"
-    ```
-  - WSL がバックグラウンドで立ち上がり、クライアントから即座に SSH 接続できることを確認。
+- **目的**: `do-release-upgrade` 完了に伴う WSL 内部 Ubuntu の再起動処理と復旧方法の整理
+- **疑問と課題**:
+  - アップグレード完了時に「System restart required」と表示されるが、WSL 内部で `sudo reboot` を実行した場合に単体で自動再起動して立ち上がってくるのか？
+- **WSL の仕様と挙動**:
+  1. **WSL 内部での `sudo reboot` / `sudo shutdown -r now`**:
+     - systemd 有効化環境であっても、WSL 内部から `reboot` を叩くと、WSL インスタンス（仮想マシン）の全プロセスが終了（Terminate）して **停止状態（Stopped）** に遷移する。
+     - 通常のベアメタル Linux やクラウド VM と異なり、WSL は Hyper-V/仮想マシン基盤として Windows ホストから管理されているため、**Windows ホスト側から起動要求（`wsl.exe` 呼び出し）がない限り、WSL 自律で電源を再投入（再起動）することはできない**。
+  2. **完全再起動（Clean Restart）の標準手順**:
+     - **手順**: Windows の PowerShell またはコマンドプロンプトから以下の 1 行を実行する。
+       ```powershell
+       wsl.exe --shutdown; Start-Process wsl.exe -ArgumentList "-d Ubuntu -u root --exec sleep infinity" -WindowStyle Hidden
+       ```
+     - これにより、古い WSL インスタンスが安全に終了され、数秒で新カーネル・新 Ubuntu 24.04 としてバックグラウンド再起動し、SSH 接続が復帰する。
+- **統合手順書に向けた知見**:
+  - WSL 上での Linux アップグレード後の「再起動」は、WSL 内部で `reboot` を打つのではなく、**Windows ホスト側から `wsl.exe --shutdown` 経由で再起動するのが最も確実かつ安全**である。
 
 ---
 
