@@ -46,7 +46,7 @@ def render_report():
         name = m['model_name']
         if m.get('rank') == 1:
             name = f"**{name}**"
-        lines.append(f"| {name} | {m['developer']} | **{m['release_date']}** | {m['parameters']} | {m['quantization']} | **{m['size_gb']:.2f} GB** | {m['arch_type']} |")
+        lines.append(f"| {name} | {m['developer']} | {m['release_date']} | {m['parameters']} | {m['quantization']} | **{m['size_gb']:.2f} GB** | {m['arch_type']} |")
 
     lines.append("")
     lines.append("---")
@@ -63,7 +63,7 @@ def render_report():
     for m in tps_sorted:
         tps = m.get('gen_tps', 0)
         t_token = (1000.0 / tps) if tps > 0 else 0
-        lines.append(f"| **{m['model_name']}** | {m['release_date'][:7]} | **{m.get('prompt_tps', 0):.1f} tokens/s** | **{tps:.1f} tokens/s** | {t_token:.1f} ms | **{m.get('vram_mb', 0):,} MiB** | {m.get('gpu_temp_c', 45.0):.1f} °C |")
+        lines.append(f"| **{m['model_name']}** | {m['release_date']} | **{m.get('prompt_tps', 0):.1f} tokens/s** | **{tps:.1f} tokens/s** | {t_token:.1f} ms | **{m.get('vram_mb', 0):,} MiB** | {m.get('gpu_temp_c', 45.0):.1f} °C |")
 
     lines.append("")
     lines.append("---")
@@ -93,7 +93,7 @@ def render_report():
 
     size_sorted = sorted(sorted_models, key=lambda x: x.get("size_gb", 0))
     for m in size_sorted:
-        lines.append(f"| **{m['model_name']}** | {m['release_date'][:7]} | {m['size_gb']:.2f} GB | **{m.get('dl_time_sec', 0)} 秒** | **{m.get('dl_speed_mbs', 0):.1f} MB/s** | {m.get('size_gb', 0)*1.2:.1f} 秒 | **約 2 秒** |")
+        lines.append(f"| **{m['model_name']}** | {m['release_date']} | {m['size_gb']:.2f} GB | **{m.get('dl_time_sec', 0)} 秒** | **{m.get('dl_speed_mbs', 0):.1f} MB/s** | {m.get('size_gb', 0)*1.2:.1f} 秒 | **約 2 秒** |")
 
     lines.append("")
     lines.append("---")
