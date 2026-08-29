@@ -1,0 +1,11 @@
+[project]
+name = "master-enricher"
+version = "0.1.0"
+description = "SQLite master data enrichment using local LLM (Qwen3.5)"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.0.0",
+]
+
+[dependency-groups]
+dev = []
