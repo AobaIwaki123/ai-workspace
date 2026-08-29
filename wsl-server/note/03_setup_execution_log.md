@@ -157,8 +157,13 @@
 - **検証手順**:
   1. クライアント端末から SSH 接続中に `sudo reboot` を実行
   2. セッション切断後、約 3〜5 秒待機
-  3. 再度 `ssh <user>@<WindowsIP>` を実行
-  4. ログイン後、`uptime` で再起動を確認（`up 0 minutes` 等）
+  - **発生した事象**:
+    - タスクおよび WSL の State は `Running` になっているが、クライアントから SSH 接続が拒否/タイムアウトする。
+- **切り分けポイント**:
+  1. WSL 内部で `systemd` が有効化され `ssh.service` が起動しているか (`wsl.exe -u root --exec systemctl status ssh`)
+  2. ポート 22 が LISTEN 状態にあるか (`wsl.exe -u root --exec ss -tulpn`)
+  3. Windows Defender ファイアウォールでポート 22 受信が許可されているか
+  4. クライアント側のエラー（`Connection refused` vs `Operation timed out`）
 
 ---
 
