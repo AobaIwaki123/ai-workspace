@@ -68,7 +68,7 @@ flowchart TD
   - [`note/01_requirements_and_architecture.md`](note/01_requirements_and_architecture.md): 要件定義と全体アーキテクチャ設計
   - [`note/02_ssh_server_connection_and_current_state.md`](note/02_ssh_server_connection_and_current_state.md): 現状構成シート（Mirrored Mode, Ubuntu 24.04）
   - [`note/03_setup_execution_log.md`](note/03_setup_execution_log.md): 実機セットアップ作業生ログ（トラブル・解決策・コマンド履歴）
-  - [`note/04_troubleshooting_and_lessons_learned.md`](note/04_troubleshooting_and_lessons_learned.md): トラブルシューティング知見集・落とし穴マトリクス (全15件)
+  - [`note/04_troubleshooting_and_lessons_learned.md`](note/04_troubleshooting_and_lessons_learned.md): トラブルシューティング知見集・落とし穴マトリクス (全16件)
   - [`note/05_declarative_tool_management.md`](note/05_declarative_tool_management.md): 宣言的パッケージ・ツール管理ツールの選定比較
   - [`note/06_dotfiles_and_git_config_integration.md`](note/06_dotfiles_and_git_config_integration.md): Dotfiles & Git Config 統合パターンの比較
   - [`note/07_server_hardware_and_spec_evaluation.md`](note/07_server_hardware_and_spec_evaluation.md): ハードウェア仕様・カーネル・仮想化サブシステムに基づく性能評価レポート
