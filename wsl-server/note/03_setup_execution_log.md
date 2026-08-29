@@ -130,7 +130,18 @@
   - 毎回手動で PowerShell を叩く手間を排除するため、ワンクリック／1コマンドで登録可能なスクリプトを `scripts/` に整備：
     1. **Windows 側ワンクリック実行**: [`scripts/setup-autostart.bat`](../scripts/setup-autostart.bat)（管理者権限で右クリック実行）
     2. **Linux 側 1 コマンド実行**: [`scripts/setup-host-autostart.sh`](../scripts/setup-host-autostart.sh)（SSH 先の WSL ターミナルから直接 Windows 側のタスクを登録）
-  - これにより、ターミナルを閉じても、Ubuntu 内部で `sudo reboot` されても、2秒で自動的にバックグラウンド常駐が復旧する。
+  - **PowerShell コマンドの各パラメータ解説**:
+    - `$LoopCommand`: `while ($true) { wsl.exe ... sleep infinity; Start-Sleep 2 }`
+      - `sleep infinity` で Linux プロセスを維持し、ターミナルを閉じても Stopped にさせない。
+      - `sudo reboot` 等でプロセスが exit しても、外側の `while` ループが 2 秒後に即座に `wsl.exe` を再起動して自動復活。
+    - `-WindowStyle Hidden`: バックグラウンド実行（黒いプロンプト画面を表示させない）。
+    - `-NoProfile -NonInteractive`: PowerShell プロファイル読み込みをスキップして高速・安全に起動し、対話プロンプトを待たない。
+    - `-AtLogOn`: Windows ログオン時に自動起動。
+    - `-RunLevel Highest`: 管理者特権で実行（WSL / ネットワーク設定へのアクセスを確実化）。
+    - `-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries`: バッテリー駆動時や省電力時でもタスクを止めない。
+    - `-ExecutionTimeLimit 0`: Windows タスクスケジューラのデフォルト制限（3日での強制終了）を解除し、無期限（24時間365日）連続稼働させる。
+    - `-RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1)`: 万が一 PowerShell プロセス自体が落ちても 1 分以内に Windows 側で自動再起動。
+    - `Register-ScheduledTask -Force`: 既存タスクがあっても警告なしで安全に上書き更新。
 
 ---
 
