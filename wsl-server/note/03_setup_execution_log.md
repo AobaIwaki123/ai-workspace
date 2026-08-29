@@ -143,7 +143,7 @@
       - **副作用とリスク**: 本来タスクがハング・暴走した際に OS が自動キルするセーフティネットが無効化される。
       - **安全性の担保**: 本スクリプトは `Start-Sleep -Seconds 2` を挟み、通常時は `sleep infinity` でブロッキング待機するため CPU/メモリ負荷は実質 0.0% であり、暴走リスクは極めて低い。
     - `-RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1)`: 万が一 PowerShell プロセス自体が落ちても 1 分以内に Windows 側で自動再起動。
-    - `Register-ScheduledTask -Force`: 既存タスクがあっても警告なしで安全に上書き更新。
+    - `Register-ScheduledTask`: 初回セットアップ時は `-Force` なしでクリーンに登録可能（再設定・上書き時は必要に応じて使用）。
 
 ---
 
