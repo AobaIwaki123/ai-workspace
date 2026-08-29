@@ -157,13 +157,11 @@
 - **検証手順**:
   1. クライアント端末から SSH 接続中に `sudo reboot` を実行
   2. セッション切断後、約 3〜5 秒待機
-  - **発生した事象**:
-    - タスクおよび WSL の State は `Running` になっているが、クライアントから SSH 接続が拒否/タイムアウトする。
-- **切り分けポイント**:
-  1. WSL 内部で `systemd` が有効化され `ssh.service` が起動しているか (`wsl.exe -u root --exec systemctl status ssh`)
-  2. ポート 22 が LISTEN 状態にあるか (`wsl.exe -u root --exec ss -tulpn`)
-  3. Windows Defender ファイアウォールでポート 22 受信が許可されているか
-  4. クライアント側のエラー（`Connection refused` vs `Operation timed out`）
+  - **検証結果 (完全成功)**:
+    - `sudo reboot` 実行後、Windows 側を一切操作することなく、**約 5〜10 秒待機するだけで WSL VM 起動 → systemd 立ち上がり → sshd 起動 → ネットワーク同期が全自動で完了**し、外部からの SSH 再接続に完全成功。
+    - `uptime` にて `up 0 min`（クリーンリブート）を確認。
+- **手順書化に向けた知見**:
+  - `sudo reboot` 後の復帰には、監視ループの検知周期（最大2秒）＋ WSL2 / systemd のコールドブート時間（約3〜8秒）を合わせて、**合計 5〜10 秒程度の待機時間** が必要となる。
 
 ---
 
