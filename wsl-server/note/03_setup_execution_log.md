@@ -142,8 +142,11 @@
     - `-ExecutionTimeLimit 0`: Windows タスクスケジューラのデフォルト制限（3日/72時間での強制終了）を解除し、無期限（24時間365日）連続稼働させる。
       - **副作用とリスク**: 本来タスクがハング・暴走した際に OS が自動キルするセーフティネットが無効化される。
       - **安全性の担保**: 本スクリプトは `Start-Sleep -Seconds 2` を挟み、通常時は `sleep infinity` でブロッキング待機するため CPU/メモリ負荷は実質 0.0% であり、暴走リスクは極めて低い。
-    - `-RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1)`: 万が一 PowerShell プロセス自体が落ちても 1 分以内に Windows 側で自動再起動。
     - `Register-ScheduledTask`: 初回セットアップ時は `-Force` なしでクリーンに登録可能（再設定・上書き時は必要に応じて使用）。
+  - **タスクスケジューラ登録直後に State が Ready（停止）に戻る問題と解決**:
+    - **事象**: タスク登録後に `Start-ScheduledTask` を実行しても、`Running` にならず `Ready` に戻ってしまい WSL が起動しない。
+    - **原因**: タスクスケジューラの `Action` 引数欄（`-Argument`）に直接複雑な PowerShell コマンドライン（引用符・中括弧）を渡すと、タスクスケジューラの XML 登録時に引用符が破壊され、PowerShell プロセスが起動直後に構文エラーで Exit していたため。
+    - **解決策**: `%USERPROFILE%\.wsl_keepalive.ps1` に純粋な PowerShell スクリプトファイルとして配置し、タスクスケジューラからは `-File "%USERPROFILE%\.wsl_keepalive.ps1"` として呼び出す構成に変更。これにより引数崩れを根絶し、100% 確実に `Running` 常駐する。
 
 ---
 
