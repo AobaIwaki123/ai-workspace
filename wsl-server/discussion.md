@@ -74,6 +74,9 @@ flowchart TD
   - [`note/07_server_hardware_and_spec_evaluation.md`](note/07_server_hardware_and_spec_evaluation.md): ハードウェア仕様・カーネル・仮想化サブシステムに基づく性能評価レポート
   - [`note/08_performance_benchmark_results.md`](note/08_performance_benchmark_results.md): GPU (GTX 1650 Ti)・LLM (`llama.cpp`)・ストレージ (ext4 vs 9p) 実機ベンチマーク測定結果レポート
   - [`note/09_gpu_phonetic_service_and_flexible_architecture.md`](note/09_gpu_phonetic_service_and_flexible_architecture.md): 柔軟なGPUサービス基盤（Storage Guard）& 英語カタカナ読み変換API仕様
+  - [`note/10_gpu_hardware_performance_and_capacity_evaluation.md`](note/10_gpu_hardware_performance_and_capacity_evaluation.md): GPUハードウェア性能・稼働時負荷・推論スループット・実用キャパシティ評価レポート (何Bまで実用可能か)
+  - [`note/11_3b_model_comparison_and_system_audit.md`](note/11_3b_model_comparison_and_system_audit.md): 3B帯モデル比較 & システム負荷・メモリリーク監査レポート
+  - [`note/12_working_models_comprehensive_benchmark_report.md`](note/12_working_models_comprehensive_benchmark_report.md): 実働全6モデルの包括ベンチマーク & 発表時期別性能レポート
 
 ---
 
@@ -97,12 +100,17 @@ flowchart TD
 - [x] 統合手順書（`SERVER_SETUP_GUIDE.md`）の初版作成完了
 - [x] 仕様・実測観測ベースの性能評価レポート（`note/07`）の作成完了
 - [x] 実機ベンチマーク（GPU / LLM / ストレージ I/O）の測定完了 (`note/08`)
-- [x] **[NEW] 柔軟なGPUサービス基盤（Storage Guard）と英語カタカナ読み変換APIの構築完了 (`note/09`)**:
-  - `manage-gpu-service.sh` によるストレージ容量節約（単一モデル維持・fstrim連携）とHot-Swap切り替えの確立
-  - Qwen2.5 1.5B (VRAM 1.1GB) による「AKB -> エーケービー」「AWS -> エーダブリューエス」の完全精度変換を実証
-  - 自宅 k8s クラスタ向け ExternalName Service 設定マニフェスト整備
+- [x] 柔軟なGPUサービス基盤（Storage Guard）と英語カタカナ読み変換APIの構築完了 (`note/09`)
+- [x] GPUハードウェア性能・稼働時負荷・実用キャパシティ評価の完了 (`note/10`)
+- [x] 3B帯モデル比較 & システム負荷・メモリリーク監査の完了 (`note/11`)
+- [x] **[NEW] 実働全6モデルの包括ベンチマーク & 発表時期別性能レポートの完了 (`note/12`)**:
+  - 全モデルの公式発表時期を明記し、Meta Llama 3.2 3B (2024/09) が正答率 92.5% で最優秀であることを実証
+  - 10件保持枠のもと全6モデル（10.7GB）を手元キャッシュ整備
 - [ ] **[保留] Docker / Docker Compose（コンテナ基盤）のセットアップ**:
   - ユーザー指示により一旦不要として保留（将来必要時に着手）
+
+
+
 
 
 

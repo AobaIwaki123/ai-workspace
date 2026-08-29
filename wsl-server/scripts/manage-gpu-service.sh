@@ -25,10 +25,12 @@ MODEL_FILE="qwen2.5-1.5b-instruct-q4_k_m.gguf"
 N_GPU_LAYERS="99"
 CONTEXT_SIZE="2048"
 THREADS="6"
+MAX_KEEP_MODELS=15
 EOF
 fi
 
 source "$CONFIG_FILE"
+MAX_KEEP_MODELS="${MAX_KEEP_MODELS:-10}"
 
 get_current_model_path() {
     echo "$MODELS_DIR/$MODEL_FILE"
@@ -61,7 +63,9 @@ start_service() {
 
     echo "[INFO] Starting llama-server on $HOST:$PORT with model $(basename "$model_path")..."
     export LD_LIBRARY_PATH="$SCRATCH_BIN:${LD_LIBRARY_PATH:-}"
-    nohup "$SERVER_BIN" \
+
+    # Use setsid to fully detach daemon from current terminal session
+    setsid "$SERVER_BIN" \
         -m "$model_path" \
         --host "$HOST" \
         --port "$PORT" \
@@ -72,7 +76,6 @@ start_service() {
         </dev/null > "$LOG_FILE" 2>&1 &
 
     local new_pid=$!
-    disown "$new_pid" 2>/dev/null || true
     echo "$new_pid" > "$PID_FILE"
     
     echo -n "[INFO] Waiting for server to initialize model..."
@@ -118,6 +121,36 @@ stop_service() {
     echo "[SUCCESS] GPU Service stopped."
 }
 
+cleanup_old_models() {
+    local max_models="${1:-$MAX_KEEP_MODELS}"
+    echo "[INFO] Managing model storage (Retention policy: Keep newest $max_models models)..."
+    
+    # List all GGUF models sorted by modification time (newest first)
+    local models
+    models=$(find "$MODELS_DIR" -maxdepth 1 -name "*.gguf" -type f -printf '%T@ %p\n' | sort -rn | cut -d' ' -f2-)
+    
+    local count=0
+    local deleted=0
+    while IFS= read -r f; do
+        [ -z "$f" ] && continue
+        count=$((count + 1))
+        if [ "$count" -gt "$max_models" ]; then
+            echo "  Pruning old model (#$count): $(basename "$f")"
+            rm -f "$f"
+            deleted=1
+        fi
+    done <<< "$models"
+
+    if [ "$deleted" -eq 1 ]; then
+        echo "[INFO] Freeing trimmed SSD blocks to Windows host (fstrim)..."
+        if command -v fstrim >/dev/null 2>&1; then
+            sudo -n fstrim / 2>/dev/null || true
+        fi
+    else
+        echo "  All models within retention limit ($count <= $max_models). No cleanup needed."
+    fi
+}
+
 show_status() {
     echo "============================================================"
     echo "  GPU Service Status & Storage Overview"
@@ -133,9 +166,10 @@ show_status() {
     echo "  Active Model: $MODEL_FILE"
     echo "  GPU Offload Layers: $N_GPU_LAYERS"
     echo "  Context Size: $CONTEXT_SIZE"
+    echo "  Retention Policy: Keep last $MAX_KEEP_MODELS models"
     echo ""
     echo "  [Models Storage (${MODELS_DIR})]"
-    ls -lh "$MODELS_DIR" | grep ".gguf" || echo "  No GGUF models stored."
+    ls -lht "$MODELS_DIR"/*.gguf 2>/dev/null | awk '{print "  " $9 " (" $5 ", " $6 " " $7 " " $8 ")"}' || echo "  No GGUF models stored."
     echo ""
     echo "  [Disk Space Overview]"
     df -h / | awk 'NR==1 || NR==2 {print "  " $0}'
@@ -151,28 +185,21 @@ switch_model() {
     echo "[1/4] Stopping current service..."
     stop_service
 
-    echo "[2/4] Cleaning old models to save disk storage..."
-    for f in "$MODELS_DIR"/*.gguf; do
-        if [ -f "$f" ] && [ "$(basename "$f")" != "$filename" ]; then
-            echo "  Removing old model: $(basename "$f")"
-            rm -f "$f"
-        fi
-    done
-
-    echo "[3/4] Downloading new model if needed..."
+    echo "[2/4] Downloading new model if needed..."
     if [ ! -f "$MODELS_DIR/$filename" ]; then
         curl -L -o "$MODELS_DIR/$filename" "$target_url"
     else
         echo "  Model already exists locally."
+        touch "$MODELS_DIR/$filename" # Update mtime
     fi
+
+    echo "[3/4] Enforcing retention policy (keeping last $MAX_KEEP_MODELS models)..."
+    cleanup_old_models "$MAX_KEEP_MODELS"
 
     # Update env config
     sed -i "s/^MODEL_FILE=.*/MODEL_FILE=\"$filename\"/" "$CONFIG_FILE"
 
-    echo "[4/4] Freeing trimmed SSD blocks back to Windows host (fstrim)..."
-    sudo fstrim -v / 2>/dev/null || true
-
-    echo "[INFO] Starting service with new model..."
+    echo "[4/4] Starting service with new model..."
     start_service
 }
 
@@ -197,7 +224,7 @@ test_kana_conversion() {
             messages: [
                 {
                     role: "system",
-                    content: "あなたは英単語やアルファベット略語を正確な日本語カタカナ読みに変換するAIです。\n\n【ルール】\n1. アルファベットの略語（頭字語）は、1文字ずつアルファベット読みをつなげます。\n   - A=エー, B=ビー, C=シー, D=ディー, E=イー, G=ジー, H=エイチ, I=アイ, K=ケー, M=エム, N=エヌ, P=ピー, R=アール, S=エス, T=ティー, U=ユー, V=ブイ, W=ダブリュー, X=エックス, Y=ワイ, Z=ゼット\n   - 例: AKB -> エーケービー, AWS -> エーダブリューエス, USB -> ユーエスビー, CI/CD -> シーアイシーディー\n2. 一般的な英単語・製品名は、標準的な日本語カタカナ表記にします。\n   - 例: Apple -> アップル, iPhone -> アイフォーン, Google -> グーグル, Kubernetes -> クバネティス\n\n出力は カタカナ読みのみ を箇条書きで答えてください。"
+                    content: "あなたは英単語やアルファベット略語を正確な日本語カタカナ読みに変換するAIです。\n\n【ルール】\n1. アルファベットの略語（頭字語）は、1文字ずつアルファベット読みをつなげます。\n   - A=エー, B=ビー, C=シー, D=ディー, E=イー, G=ジー, H=エイチ, I=アイ, K=ケー, M=エム, N=エヌ, P=ピー, R=アール, S=エス, T=ティー, U=ユー, V=ブイ, W=ダブリュー, X=エックス, Y=ワイ, Z=ゼット\n   - 例: IBM -> アイビーエム, DNS -> ディーエヌエス\n2. 一般的な英単語・製品名は、標準的な日本語カタカナ表記にします。\n   - 例: Linux -> リナックス, Docker -> ドッカー\n\n出力は カタカナ読みのみ を答えてください。"
                 },
                 {
                     role: "user",
@@ -232,6 +259,9 @@ case "${1:-status}" in
     status)
         show_status
         ;;
+    cleanup)
+        cleanup_old_models "${2:-$MAX_KEEP_MODELS}"
+        ;;
     switch)
         if [ -z "${2:-}" ]; then
             echo "Usage: $0 switch <model-download-url>"
@@ -243,7 +273,7 @@ case "${1:-status}" in
         test_kana_conversion "${2:-}"
         ;;
     *)
-        echo "Usage: $0 {start|stop|restart|status|switch <url>|test [text]}"
+        echo "Usage: $0 {start|stop|restart|status|cleanup [num]|switch <url>|test [text]}"
         exit 1
         ;;
 esac

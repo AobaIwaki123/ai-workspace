@@ -1,6 +1,14 @@
 node_modules/
 .DS_Store
 *.log
+__pycache__/
+*.pyc
+
+# Models & Large Binary Artifacts
+models/
+*.gguf
+scratch/
+*.env
 
 # Git Worktrees & Shared cross-worktree directory
 .worktrees/

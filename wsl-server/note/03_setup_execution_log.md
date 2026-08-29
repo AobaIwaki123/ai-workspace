@@ -338,3 +338,47 @@
   3. **OpenAI 互換 API 稼働**:
      - `http://192.168.11.15:8080/v1/chat/completions` で LAN 公開。自宅 k8s クラスタの `ExternalName` Service からの呼び出し設定を確立。
 
+---
+
+### 2026-08-30: GPU 性能・稼働時負荷プロファイル & 実用キャパシティ評価の実施
+
+- **目的**: 稼働中の GPU 負荷（VRAM / 利用率 / 温度 / 電力）を実機サンプリング計測し、モデルサイズ別の推論スループットとダウンロードコストを定量化して「本ハードウェアで何 B まで実用運用できるか」の物理限界を評価する
+- **作成ファイル**:
+  - [**`wsl-server/note/10_gpu_hardware_performance_and_capacity_evaluation.md`**](10_gpu_hardware_performance_and_capacity_evaluation.md): GPU ハードウェア性能・負荷・キャパシティ評価レポート
+  - [**`wsl-server/scripts/profile_system_load.py`**](../scripts/profile_system_load.py): GPU/CPU/メモリ負荷サンプリングプロファイラ
+  - [**`wsl-server/scripts/network_benchmark.sh`**](../scripts/network_benchmark.sh): ネットワーク帯域 & モデル切り替えコスト試算スクリプト
+  - [**`wsl-server/scripts/evaluate_phonetic_conversion.py`**](../scripts/evaluate_phonetic_conversion.py): データリーク排除・拡張カタカナ変換ベンチマーク
+- **主要な実測データと成果**:
+  1. **モデル保持数の拡張**:
+     - 直近 5 件から **直近 10 件** (`MAX_KEEP_MODELS=10`) へ拡大。
+  2. **稼働時 GPU 負荷**:
+     - アイドル時: 8.76 W, 43.7 °C, VRAM 0 MiB
+     - 連続推論時: 約 16〜22.5 W, 45.0 °C (サーマルスロットリングなし), VRAM 1.15GB (1.5B) 〜 2.55GB (3B)
+  3. **推論スループット (`llama-bench`)**:
+     - 0.5B Q4: Prompt 247.8 t/s, Generation **59.8 t/s**
+     - 1.5B Q4: Prompt 124.0 t/s, Generation **28.2 t/s**
+     - 3.0B Q4: Prompt 56.4 t/s, Generation **14.2 t/s**
+  4. **実用キャパシティの結論**:
+     - 4GB VRAM の物理上限により、全層 GPU オフロード可能な **「3B〜4B クラス（Q4〜Q5 量子化）」が本機の実用運用上限・ベストスイートスポット** であることを実証。
+
+---
+
+### 2026-08-30: 3B 帯モデル比較 & システム負荷・メモリリーク監査の実施
+
+- **目的**: 3B 帯有力モデル（Llama 3.2 3B, Gemma 2 2B, Qwen 2.5 3B, Nanbeige 4.2-3B）のハイブリッドカタカナ変換精度を比較し、CPU 温度・メモリ負荷・リソースリークの有無を厳密に監査する
+- **作成ファイル**:
+  - [**`wsl-server/note/11_3b_model_comparison_and_system_audit.md`**](11_3b_model_comparison_and_system_audit.md): 3B 帯モデル比較 & システム監査レポート
+  - [**`wsl-server/scripts/hybrid_phonetic_service.py`**](../scripts/hybrid_phonetic_service.py): ルール・辞書・LLM フォールバックハイブリッド変換スクリプト
+- **主要な実測データと成果**:
+  1. **モデル比較結果 (全67件ハイブリッドベンチマーク)**:
+     - **Llama 3.2 3B**: **92.5% (62/67)** / 平均レイテンシ **187.5 ms**（最優秀・最推奨）
+     - **Gemma 2 2B**: **85.1% (57/67)** / 平均レイテンシ 473.0 ms
+     - **Qwen 2.5 3B**: **74.6% (50/67)** / 平均レイテンシ 143.9 ms
+  2. **システム負荷 & メモリリーク監査結果**:
+     - プロセス実消費メモリ (`AnonPages`): **453 MiB**（リークなし）
+     - 実質利用可能空きメモリ (`MemAvailable`): **6.61 GiB (86.4% 空き余力)**
+     - CPU Package 温度: **43.0〜48.0 °C** (過熱・サーマルスロットリング一切なし)
+     - GPU VRAM リーク: 推論終了後に即時ベースラインへ復帰（リークゼロ確認）
+
+
+
