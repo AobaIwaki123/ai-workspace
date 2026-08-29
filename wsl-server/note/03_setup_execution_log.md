@@ -118,6 +118,24 @@
 
 ---
 
+### 2026-08-29: 停止（Stopped）状態からの WSL 起動と疎通確認
+
+- **目的**: アップグレード後の停止状態から WSL を再起動し、新環境への SSH 疎通を確認
+- **実行手順 (Windows PowerShell)**:
+  ```powershell
+  # 状態確認（Stopped を確認）
+  wsl.exe -l -v
+
+  # バックグラウンド起動（画面非表示で常駐起動）
+  Start-Process wsl.exe -ArgumentList "-d Ubuntu -u root --exec sleep infinity" -WindowStyle Hidden
+  ```
+- **検証 (クライアント端末からの SSH ログイン & OS確認)**:
+  ```bash
+  ssh <user>@<WindowsIP>
+  cat /etc/os-release
+  sudo systemctl status ssh
+  ```
+
 ---
 
 ### [次回作業枠]: コンテナ基盤 (Docker / Docker Compose) の導入
@@ -125,3 +143,4 @@
 - **目的**: 
 - **実行したコマンド**:
 - **メモ**:
+
