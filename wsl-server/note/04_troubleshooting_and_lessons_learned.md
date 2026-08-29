@@ -26,6 +26,7 @@
 | **13** | **SSH 締め出し (Lockout)** | パスワード認証無効化後に接続不能になる | クライアントの公開鍵が `~/.ssh/authorized_keys` に登録される前にパスワード遮断した | スクリプト内で `authorized_keys` の存在と有効鍵行数を事前検証し、0件時は遮断処理をブロック |
 | **14** | **SSH 設定競合・上書き** | `apt upgrade openssh-server` 時に設定が衝突・初期化 | `/etc/ssh/sshd_config` を直接書き換えていたためパッケージ更新プロンプトが発生 | `/etc/ssh/sshd_config.d/99-server-hardening.conf` による非破壊ドロップイン管理を採用 |
 | **15** | **sshd 構文エラー事故** | 設定リロード後に `sshd` が停止・再接続不能 | 設定パラメータのタイポや非互換構文でデーモンがクラッシュ | 反映直前に `sshd -t` による構文検証を必須化し、失敗時は即座に自動ロールバック |
+| **16** | **PIN未入力での常駐起動** | Windows再起動後にPIN入力前でもWSLが起動するか | Windows 10/11 の ARSO (Automatic Restart Sign-On) により事前ログオンが走る | `AtLogOn` トリガー設定で、物理的なPIN入力不要で完全ハンズフリー自動起動が成立 |
 
 ---
 
@@ -72,3 +73,13 @@
   1. `/etc/ssh/sshd_config.d/99-server-hardening.conf` に設定を隔離。
   2. 反映前に `grep -v '^#' ~/.ssh/authorized_keys` で公開鍵存在を確認。
   3. 反映前に `sshd -t` を実行し、0 以外の終了コード時はファイルを削除してロールバック。
+
+---
+
+### 3.5 Windows 再起動時における ARSO と完全ハンズフリー起動
+- **詳細**: Windows Update やホスト再起動後、画面がロック状態（PIN 入力画面）のままでも、Windows の **ARSO（Automatic Restart Sign-On / サインイン情報の自動再開）** 機能によって内部セッションが自動初期化される。
+- **動作メカニズム**:
+  1. OS 起動時に Windows が前回のユーザーアカウントをバックグラウンド初期化。
+  2. タスクスケジューラの `AtLogOn` トリガーが自動発火。
+  3. `WSL-AutoStart-Server` が実行され、WSL2 インスタンスおよび `ssh.service` が起動。
+  4. **人間がキーボードを一切触らずとも、外部から `ssh wsl` で接続可能になる**。
