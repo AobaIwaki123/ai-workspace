@@ -53,9 +53,15 @@
   ```
 - **発生した事象・課題**:
   - アップグレード完了後、外部クライアントからの SSH 接続が拒否される（またはタイムアウト/認証失敗する）事象が発生。
-- **特定された根本原因**:
-  - Ubuntu 24.04 へのアップグレードに伴い SSH の起動方式が `ssh.socket` に切り替わったが、この `ssh.socket` が `inactive (dead)` の状態になっていたため、SSH ポート（22）の待ち受けが停止していた。
-- **復旧・恒久対応コマンド**:
+- **調査状況 (Status Check)**:
+  - `ssh.socket`: inactive
+  - `ssh.service`: active (running)
+- **次の切り分けポイント**:
+  1. WSL 内で実際に port 22（または指定ポート）が LISTEN 状態になっているか (`ss -tulpn`)
+  2. WSL 内部でのローカル SSH 接続 (`ssh localhost`) の可否
+  3. WSL の IP アドレス変更に伴う Windows 側 `netsh` ポートプロキシ宛先不一致の有無 (`ip a show eth0`)
+  4. クライアント側でのエラー種別 (`Connection refused` / `Timed out` / `Permission denied`)
+
   ```bash
   # 1. 不安定な ssh.socket を停止・無効化
   sudo systemctl stop ssh.socket
