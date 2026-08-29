@@ -76,7 +76,8 @@ flowchart TD
   - [`note/09_gpu_phonetic_service_and_flexible_architecture.md`](note/09_gpu_phonetic_service_and_flexible_architecture.md): 柔軟なGPUサービス基盤（Storage Guard）& 英語カタカナ読み変換API仕様
   - [`note/10_gpu_hardware_performance_and_capacity_evaluation.md`](note/10_gpu_hardware_performance_and_capacity_evaluation.md): GPUハードウェア性能・稼働時負荷・推論スループット・実用キャパシティ評価レポート (何Bまで実用可能か)
   - [`note/11_3b_model_comparison_and_system_audit.md`](note/11_3b_model_comparison_and_system_audit.md): 3B帯モデル比較 & システム負荷・メモリリーク監査レポート
-  - [`note/12_working_models_comprehensive_benchmark_report.md`](note/12_working_models_comprehensive_benchmark_report.md): 実働全6モデルの包括ベンチマーク & 発表時期別性能レポート
+  - [`note/12_working_models_comprehensive_benchmark_report.md`](note/12_working_models_comprehensive_benchmark_report.md): 実働全13モデルの包括ベンチマーク & 発表時期別性能レポート (JSON自動レンダリング)
+  - [`note/14_homelab_cluster_gpu_resource_integration_architecture.md`](note/14_homelab_cluster_gpu_resource_integration_architecture.md): 自宅 k0s クラスタへの GPU 資源統合 & ネットワーク公開アーキテクチャ設計書
 
 ---
 
@@ -103,11 +104,15 @@ flowchart TD
 - [x] 柔軟なGPUサービス基盤（Storage Guard）と英語カタカナ読み変換APIの構築完了 (`note/09`)
 - [x] GPUハードウェア性能・稼働時負荷・実用キャパシティ評価の完了 (`note/10`)
 - [x] 3B帯モデル比較 & システム負荷・メモリリーク監査の完了 (`note/11`)
-- [x] **[NEW] 実働全6モデルの包括ベンチマーク & 発表時期別性能レポートの完了 (`note/12`)**:
-  - 全モデルの公式発表時期を明記し、Meta Llama 3.2 3B (2024/09) が正答率 92.5% で最優秀であることを実証
-  - 10件保持枠のもと全6モデル（10.7GB）を手元キャッシュ整備
-- [ ] **[保留] Docker / Docker Compose（コンテナ基盤）のセットアップ**:
-  - ユーザー指示により一旦不要として保留（将来必要時に着手）
+- [x] 実働全13モデルの包括ベンチマーク & JSONデータストア化・自動レンダリングの完了 (`note/12`, `data/benchmarks.json`)
+- [x] 大文字複合語スマート正規化 (Title Case) によるカタカナ誤読防止の完了 (`scripts/hybrid_phonetic_service.py`)
+- [x] **[NEW] 自宅 k0s クラスタへの GPU 資源統合 & ネットワーク公開アーキテクチャ設計書の策定完了 (`note/14`)**:
+  - `k8s-cluster/k0s/k0sctl.yml` に基づくノードトポロジ図（Mermaid）の整理
+  - Selector なし Service ＋ EndpointSlice によるクラスタ内名前解決の設計
+  - Cloudflare Ingress による Zero Trust 外部公開マニフェストの設計
+  - ArgoCD Application による GitOps 構成の設計
+- [ ] **[NEXT] `~/k8s-cluster` リポジトリへのマニフェスト適用 & ArgoCD 同期テスト**:
+  - `apps/ai-infrastructure/` マニフェストの反映とクラスタ内疎通確認
 
 
 
