@@ -154,10 +154,33 @@ def hybrid_convert(word: str) -> tuple[str, str, float]:
         lat = (time.perf_counter() - t0) * 1000
         return str(e), "ERROR", lat
 
-# Test against the same benchmark dataset
-from evaluate_phonetic_conversion import TEST_DATASET, is_match
+def interactive_mode():
+    print("=" * 70)
+    print("  🔤 Hybrid Phonetic Converter (Rule + Dict + Llama-3.2-3B LLM)")
+    print("  Type any English word / acronym (e.g. 'AKB48', 'Docker', 'GCP').")
+    print("  Type 'exit' or 'quit' to exit.")
+    print("=" * 70)
 
-def main():
+    while True:
+        try:
+            word = input("\n\033[1;36mInput Word:\033[0m ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print("\nGoodbye!")
+            break
+
+        if not word:
+            continue
+        if word.lower() in ["exit", "quit"]:
+            print("Goodbye!")
+            break
+
+        result, engine, lat_ms = hybrid_convert(word)
+        print(f"\033[1;32mKatakana:\033[0m   {result}")
+        print(f"\033[1;34mEngine:\033[0m     {engine} ({lat_ms:.2f} ms)")
+
+def run_benchmark():
+    from evaluate_phonetic_conversion import TEST_DATASET, is_match
+
     print("=" * 75)
     print("  Hybrid Phonetic Conversion Pipeline Benchmark")
     print(f"  Total Test Cases: {len(TEST_DATASET)} (Rule + Dict + LLM Fallback)")
@@ -208,6 +231,20 @@ def main():
         acc = (stats["correct"] / stats["total"]) * 100
         print(f"  {cat:<20} | {stats['correct']:2d} / {stats['total']:2d}             | {acc:5.1f}%")
     print("=" * 75)
+
+def main():
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+        if arg in ["--bench", "-b", "--benchmark"]:
+            run_benchmark()
+            return
+        # Single word or multiple words passed via arguments
+        for word in sys.argv[1:]:
+            result, engine, lat_ms = hybrid_convert(word)
+            print(f"{word:<15} -> {result:<20} [{engine}] ({lat_ms:.2f} ms)")
+        return
+
+    interactive_mode()
 
 if __name__ == "__main__":
     main()
