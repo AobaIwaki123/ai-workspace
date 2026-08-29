@@ -61,14 +61,23 @@ start_service() {
         exit 1
     fi
 
-    echo "[INFO] Starting llama-server on $HOST:$PORT with model $(basename "$model_path")..."
+    local internal_port="8081"
+    local public_port="${PORT:-8080}"
+    local gateway_script="$WORKSPACE_DIR/wsl-server/scripts/unified_gateway.py"
+    local gateway_pid_file="$WORKSPACE_DIR/scratch/gateway.pid"
+
+    echo "[INFO] Starting internal llama-server on $HOST:$internal_port with model $(basename "$model_path")..."
     export LD_LIBRARY_PATH="$SCRATCH_BIN:${LD_LIBRARY_PATH:-}"
+
+    # Stop any previous gateway instance
+    pkill -f "unified_gateway.py" 2>/dev/null || true
+    rm -f "$gateway_pid_file"
 
     # Use setsid to fully detach daemon from current terminal session
     setsid "$SERVER_BIN" \
         -m "$model_path" \
-        --host "$HOST" \
-        --port "$PORT" \
+        --host "127.0.0.1" \
+        --port "$internal_port" \
         -ngl "$N_GPU_LAYERS" \
         -c "$CONTEXT_SIZE" \
         -t "$THREADS" \
@@ -82,10 +91,16 @@ start_service() {
     for i in {1..30}; do
         if grep -q "model loaded" "$LOG_FILE" 2>/dev/null; then
             echo " Ready!"
-            echo "[SUCCESS] GPU Service started successfully (PID: $new_pid)."
-            echo "  LAN Endpoint: http://192.168.11.15:$PORT"
-            echo "  OpenAI Chat API: http://192.168.11.15:$PORT/v1/chat/completions"
-            echo "  Web UI: http://192.168.11.15:$PORT/"
+            
+            # Start Unified Gateway on public port 8080
+            echo "[INFO] Starting Unified AI Gateway on port $public_port..."
+            python3 "$gateway_script" > "$WORKSPACE_DIR/scratch/gateway.log" 2>&1 &
+            echo $! > "$gateway_pid_file"
+
+            echo "[SUCCESS] GPU Service & Unified Gateway started successfully."
+            echo "  OpenAI Chat API:         http://192.168.11.15:$public_port/v1/chat/completions"
+            echo "  Benchmark JSON Metadata: http://192.168.11.15:$public_port/api/benchmarks"
+            echo "  Health Check:            http://192.168.11.15:$public_port/health"
             return 0
         fi
         if ! kill -0 "$new_pid" 2>/dev/null; then
@@ -103,6 +118,11 @@ start_service() {
 }
 
 stop_service() {
+    local gateway_pid_file="$WORKSPACE_DIR/scratch/gateway.pid"
+    pkill -f "unified_gateway.py" 2>/dev/null || true
+    pkill -f "serve_benchmark_api.py" 2>/dev/null || true
+    rm -f "$gateway_pid_file"
+
     if ! is_running; then
         echo "[INFO] GPU Service is not running."
         rm -f "$PID_FILE"
