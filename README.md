@@ -16,7 +16,11 @@ AIと協業するためのワークスペース集
   - `.agents/skills/review-skill/`: スキルがベストプラクティスに準拠しているか静的検証・レビューするスキル
 - **`.worktrees/`**: 各タスク用 Git Worktree の配置領域（`.gitignore` 対象）
 - **`.shared/`**: Worktree 間で共有するファイル（環境変数 `.env`、キャッシュ等）の配置領域（`.gitignore` 対象）
-- **`copilot-ci/`**: GitHub Copilot を CI/CD パイプラインから呼び出す仕組みの検証・実装
+- **Spaces (個別ワークスペース)**:
+  - [`timetree/`](timetree/): TimeTree 公開カレンダー連携・API 調査・専用リポジトリ連携
+  - [`isucon/`](isucon/): ISUCON 演習・サンドボックス環境・GitOps 基盤
+  - [`wsl-server/`](wsl-server/): Windows 上での WSL2 サーバー構築・自動起動・統合手順書策定
+
 
 ---
 
