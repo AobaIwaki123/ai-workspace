@@ -215,9 +215,12 @@
   # 最新の変更を取得してスクリプトを実行
   git pull origin feat/wsl-server-space
   ./wsl-server/scripts/setup-mise.sh
-  ```
-- **効果**:
-  - `apt` でシステム環境を汚すことなく、全開発ツールが `~/.local/share/mise` に一発で安全・高速にインストールされる。
+- **実行結果 (全ツール導入完了)**:
+  - `mise` の自動セットアップおよび `mise.toml`（ADR-0004 準拠の 7-day 検証済み固定バージョン）に基づく全 13 ツール・ランタイムの一括ダウンロード・導入に完全成功。
+  - **導入された主要ツール一覧**:
+    - **言語ランタイム**: Node.js (`v20.x`), Go (`1.23.x`), Python (`3.12.x`), `uv`
+    - **開発・運用 CLI**: `gh` (GitHub CLI), `jq`, `ripgrep` (`rg`), `fd`, `fzf`, `bat`, `eza`, `delta`, `starship`
+  - **サプライチェーン安全性の確保**: `paranoid = true` による SHA256 チェックサム検証を通過し、隔離されたユーザー領域（`~/.local/share/mise`）で安全に稼働中。
 
 ---
 
