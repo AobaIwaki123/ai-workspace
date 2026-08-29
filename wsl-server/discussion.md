@@ -60,6 +60,20 @@ flowchart TD
 
 ---
 
+---
+
+## ドキュメント一覧 (note/ & adr/)
+
+- **調査・仕様・作業ログ (`note/`)**:
+  - [`note/01_requirements_and_architecture.md`](note/01_requirements_and_architecture.md): 要件定義と全体アーキテクチャ設計
+  - [`note/02_ssh_server_connection_and_current_state.md`](note/02_ssh_server_connection_and_current_state.md): 現状構成シート（Mirrored Mode, Ubuntu 24.04）
+  - [`note/03_setup_execution_log.md`](note/03_setup_execution_log.md): 実機セットアップ作業生ログ（トラブル・解決策・コマンド履歴）
+  - [`note/04_troubleshooting_and_lessons_learned.md`](note/04_troubleshooting_and_lessons_learned.md): トラブルシューティング知見集・落とし穴マトリクス (全12件)
+  - [`note/05_declarative_tool_management.md`](note/05_declarative_tool_management.md): 宣言的パッケージ・ツール管理ツールの選定比較
+  - [`note/06_dotfiles_and_git_config_integration.md`](note/06_dotfiles_and_git_config_integration.md): Dotfiles & Git Config 統合パターンの比較
+
+---
+
 ## 決定事項 (ADR一覧)
 
 - [**`ADR-0001: Mirrored ネットワークモードの採用`**](adr/0001-mirrored-network-mode.md) - ポート転送不要・ホストLAN IP直結によるサーバーネットワーク基盤の標準化
@@ -67,17 +81,20 @@ flowchart TD
 - [**`ADR-0003: mise による言語ランタイム・CLIツールの宣言的管理の採用`**](adr/0003-declarative-tool-management-with-mise.md) - mise.toml による全開発ツール・ランタイムの一括宣言管理の標準化
 - [**`ADR-0004: サプライチェーン攻撃対策としてのバージョン遅延（7-day Cooldown）および Lockfile 検証の採用`**](adr/0004-supply-chain-security-and-version-cooldown.md) - latest禁止・7日経過安定版固定・チェックサム検証の標準化
 
-
-
 ---
 
-## 直近のネクストアクション
+## 直近のネクストアクション（マシン上での引き継ぎ用）
 
-- [x] Space の作成および初期レイアウトの配置 (`wsl-server`)
-- [x] 全体ロードマップおよびアーキテクチャ概要の策定 (`discussion.md`)
-- [x] SSH サーバーの接続確認および現状構成の把握枠組み作成 (`note/02_ssh_server_connection_and_current_state.md`)
-- [x] 今後のセットアップ記録用作業ログドキュメントの作成 (`note/03_setup_execution_log.md`)
-- [ ] 続いて実施する PC / WSL セットアップ作業（パッケージ導入、ツール、Docker等）のログ記録
-- [ ] 試行錯誤した設定（不要な設定・ゴミ）の洗い出しとクリーンな統合手順書（`SERVER_SETUP_GUIDE.md`）への清書
+- [x] Ubuntu 24.04 LTS へのアップグレード完了
+- [x] Windows タスクスケジューラ常駐化（`setup-autostart.bat`）と `sudo reboot` 自動復旧検証完了
+- [x] `mise` による全開発ツール（Node.js, Go, Python, gh, jq, ripgrep 等）の宣言的導入完了
+- [x] Antigravity CLI (`agy`) のインストール & Google OAuth 認証完了
+- [ ] **[NEXT 1] Docker / Docker Compose（コンテナ基盤）のセットアップ**:
+  - Docker 公式 APT リポジトリの登録、`docker-ce`, `docker-compose-plugin` 導入、非 root 権限設定（`usermod -aG docker`）
+- [ ] **[NEXT 2] SSH セキュリティの強化**:
+  - パスワード認証無効化（`PasswordAuthentication no`）、公開鍵認証の徹底
+- [ ] **[NEXT 3] 統合手順書（`SERVER_SETUP_GUIDE.md`）への清書と検証**:
+  - ゼロからこの環境を一発再現できるクリーンな単一手順書の作成
+
 
 
