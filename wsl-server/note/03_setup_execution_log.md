@@ -303,4 +303,23 @@
      - Windows 9p マウント: Write 147 MB/s, Read 211 MB/s
      - ext4 が Write で 3.6 倍、Read で 33 倍高速であることを実証
 
+---
+
+### 2026-08-29: 柔軟なGPUサービス基盤（Storage Guard）構築と英語カタカナ読み変換の実証
+
+- **目的**: メイン PC のストレージ圧迫を防ぎつつ柔軟にモデルを切り替え可能な GPU API 基盤（OpenAI 互換）を構築し、英単語・略語（AKB -> エーケービー）の日本語カタカナ読み変換機能を実証する
+- **作成ファイル**:
+  - [**`wsl-server/note/09_gpu_phonetic_service_and_flexible_architecture.md`**](09_gpu_phonetic_service_and_flexible_architecture.md): サービス基盤 & 英語カタカナ変換仕様書
+  - [**`wsl-server/scripts/manage-gpu-service.sh`**](../scripts/manage-gpu-service.sh): ストレージ保護・Hot-Swap 切り替え・API テスト管理スクリプト
+  - [**`wsl-server/gpu-service.env`**](../gpu-service.env): GPU サービス環境設定ファイル
+- **主要な成果**:
+  1. **ストレージ防衛（Storage Guard）**:
+     - モデル保存を `models/` に統一し、常時 1 モデル（約 1GB）のみを保持。
+     - モデル切り替え時に旧モデル自動削除と `fstrim -v /` による Windows SSD 空きブロックの即時回収を自動化。
+  2. **英語 -> カタカナ読み変換の実証**:
+     - Qwen2.5 1.5B (VRAM 1.1GB) にアルファベット頭字語ルールを与えた Few-shot プロンプティングにより、「AKB, AWS, USB, CI/CD, iPhone, Kubernetes」に対して「エーケービー, エーダブリューエス, ユーエスビー, シーアイシーディー, アイフォーン, クバネティス」を 100% 正確に出力。
+  3. **OpenAI 互換 API 稼働**:
+     - `http://192.168.11.15:8080/v1/chat/completions` で LAN 公開。自宅 k8s クラスタの `ExternalName` Service からの呼び出し設定を確立。
+
+
 
