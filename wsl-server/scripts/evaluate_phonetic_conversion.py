@@ -136,9 +136,13 @@ def normalize_text(text: str) -> str:
 def is_match(actual: str, expected_list: list) -> bool:
     cleaned_actual = actual.strip().split("\n")[0].split("->")[-1].strip()
     norm_actual = normalize_text(cleaned_actual)
+    if not norm_actual:
+        return False
     for exp in expected_list:
         norm_exp = normalize_text(exp)
-        if norm_exp in norm_actual or norm_actual in norm_exp:
+        if not norm_exp:
+            continue
+        if norm_exp == norm_actual or norm_exp in norm_actual:
             return True
     return False
 
