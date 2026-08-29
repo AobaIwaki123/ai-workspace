@@ -146,7 +146,27 @@
   - **タスクスケジューラ登録直後に State が Ready（停止）に戻る問題と解決**:
     - **事象**: タスク登録後に `Start-ScheduledTask` を実行しても、`Running` にならず `Ready` に戻ってしまい WSL が起動しない。
     - **原因**: タスクスケジューラの `Action` 引数欄（`-Argument`）に直接複雑な PowerShell コマンドライン（引用符・中括弧）を渡すと、タスクスケジューラの XML 登録時に引用符が破壊され、PowerShell プロセスが起動直後に構文エラーで Exit していたため。
-    - **解決策**: `%USERPROFILE%\.wsl_keepalive.ps1` に純粋な PowerShell スクリプトファイルとして配置し、タスクスケジューラからは `-File "%USERPROFILE%\.wsl_keepalive.ps1"` として呼び出す構成に変更。これにより引数崩れを根絶し、100% 確実に `Running` 常駐する。
+  - **検証実績**:
+    - `setup-autostart.bat` の実行により、`%USERPROFILE%\.wsl_keepalive.ps1` の配置およびタスクスケジューラ `WSL-AutoStart-Server` の `State: Running` 登録・常駐化に成功。
+
+---
+
+### 2026-08-29: `sudo reboot` による WSL 自動再起動・自己修復の動作検証
+
+- **目的**: Ubuntu 内部から `sudo reboot` を実行した際に、Windows 側の監視ループにより 2 秒で自動再起動・SSH 復旧するかを検証
+- **検証手順**:
+  1. クライアント端末から SSH 接続中に `sudo reboot` を実行
+  2. セッション切断後、約 3〜5 秒待機
+  3. 再度 `ssh <user>@<WindowsIP>` を実行
+  4. ログイン後、`uptime` で再起動を確認（`up 0 minutes` 等）
+
+---
+
+### [次回作業枠]: 基本開発ツール & パッケージの導入
+
+- **目的**: 
+- **実行したコマンド**:
+- **メモ**:
 
 ---
 
@@ -155,6 +175,7 @@
 - **目的**: 
 - **実行したコマンド**:
 - **メモ**:
+
 
 
 
