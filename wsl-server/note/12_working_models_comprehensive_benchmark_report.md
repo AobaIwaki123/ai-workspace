@@ -9,6 +9,7 @@
 
 | モデル名 | 開発元 | 公式発表日 | パラメータ | 量子化 | GGUF サイズ (実測) | アーキテクチャ |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **DeepSeek-R1-Distill-Qwen-1.5B** | DeepSeek | **2025年1月20日** | 1.78 B | Q4_K_M | **1.04 GiB (1.12 GB)** | DeepSeek-R1 推論特化 |
 | **Meta Llama-3.2-3B-Instruct** | Meta AI | **2024年9月25日** | 3.21 B | Q4_K_M | **1.88 GiB (2.02 GB)** | Llama 3.2 (エッジ最適化) |
 | **Alibaba Qwen2.5-3B-Instruct** | Alibaba Cloud | **2024年9月19日** | 3.40 B | Q4_K_M | **1.87 GiB (2.01 GB)** | Qwen 2.5 (Dense) |
 | **Alibaba Qwen2.5-1.5B-Instruct** | Alibaba Cloud | **2024年9月19日** | 1.54 B | Q4_K_M | **0.99 GiB (1.06 GB)** | Qwen 2.5 (Dense) |
@@ -25,6 +26,7 @@
 | モデル名 | 発表日 | Prompt 処理 (pp128) | Token 生成 (tg32/64) | 1 トークン所要時間 | VRAM 実効消費 | GPU 温度 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Qwen2.5-0.5B** | 2024/09 | **247.8 tokens/s** | **59.8 tokens/s** | 16.7 ms | 約 500 MiB | 44.0 °C |
+| **DeepSeek-R1-1.5B** | **2025/01** | **132.9 tokens/s** | **27.7 tokens/s** | 36.1 ms | 1,150 MiB | 44.5 °C |
 | **Qwen2.5-1.5B** | 2024/09 | **124.0 tokens/s** | **28.2 tokens/s** | 35.5 ms | 1,150 MiB | 44.6 °C |
 | **Llama-3.2-3B** | **2024/09** | **57.0 tokens/s** | **15.7 tokens/s** | 63.5 ms | 2,150 MiB | **45.0 °C** |
 | **Qwen2.5-3B** | 2024/09 | **56.4 tokens/s** | **14.2 tokens/s** | 70.4 ms | 2,250 MiB | 45.0 °C |

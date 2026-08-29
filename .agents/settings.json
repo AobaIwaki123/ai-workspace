@@ -43,6 +43,12 @@
       "command(test( .*)?)",
       "command(true)",
       "command(false)",
+      "command(free( .*)?)",
+      "command(uptime( .*)?)",
+      "command(uname( .*)?)",
+      "command(lscpu( .*)?)",
+      "command(pkill( .*)?)",
+      "command(kill( .*)?)",
       "command((.*)?python3?( .*)?)",
       "command(.*\\.venv/bin/.*)",
       "command(uv( .*)?)",
@@ -65,7 +71,10 @@
       "command(bash( .*)?)",
       "command(zsh( .*)?)",
       "command((bash )?(\\./)?.*scripts/.*)",
-      "command((/usr/lib/wsl/lib/)?nvidia-smi( .*)?)"
+      "command((/usr/lib/wsl/lib/)?nvidia-smi( .*)?)",
+      "command(.*llama-bench( .*)?)",
+      "command(.*llama-cli( .*)?)",
+      "command(.*llama-server( .*)?)"
     ],
     "deny": [
       "command(rm -rf /)",
