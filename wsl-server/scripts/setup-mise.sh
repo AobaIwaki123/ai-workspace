@@ -41,16 +41,29 @@ if [[ -f "$MISE_TOML" ]]; then
     echo "Copied $MISE_TOML to ~/.config/mise/config.toml"
 fi
 
-echo "=== [4/4] Installing all tools declared in mise.toml ==="
+echo "=== [4/5] Installing all tools declared in mise.toml ==="
 mise install -y
+
+echo "=== [5/5] Installing Antigravity CLI (agy) ==="
+if ! command -v agy >/dev/null 2>&1 && [[ ! -f "$HOME/.local/bin/agy" ]]; then
+    echo "Installing Antigravity CLI via official installer..."
+    curl -fsSL https://antigravity.google/cli/install.sh | bash
+else
+    echo "Antigravity CLI (agy) is already installed."
+fi
 
 echo ""
 echo "=================================================="
-echo "mise setup completed successfully!"
-echo "Installed tools summary:"
+echo "All tools setup completed successfully!"
+echo "Installed mise tools summary:"
 echo "--------------------------------------------------"
 mise list
+echo "--------------------------------------------------"
+if command -v agy >/dev/null 2>&1 || [[ -f "$HOME/.local/bin/agy" ]]; then
+    echo "Antigravity CLI: $(~/.local/bin/agy --version 2>/dev/null || echo 'installed')"
+fi
 echo "=================================================="
-echo "To activate mise in your current terminal session, run:"
+echo "To activate tools in your current terminal session, run:"
 echo '  eval "$(~/.local/bin/mise activate bash)"'
 echo "or restart your shell / SSH session."
+
