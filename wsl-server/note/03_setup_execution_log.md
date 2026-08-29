@@ -73,19 +73,24 @@
   N: Be aware that removing the lock file is not a solution and may break your system.
   E: Unable to lock directory /var/lib/apt/lists/
   ```
-- **原因**:
-  - Ubuntu 起動直後やアップグレード直後に、バックグラウンドの自動更新プロセス（`unattended-upgrades`, `apt-daily.service`, `release-upgrades` 等）が `apt` の排他ロックを取得して実行中であるため。
+- **原因の特定**:
+  - `do-release-upgrade` は、SSH 切断時にも処理が落ちないように自動で GNU `screen` セッション（`ubuntu-release-upgrade-screen-window`）を作成して実行される。
+  - SSH 一時切断後、この `screen` セッション内で `do-release-upgrade` がユーザー入力待ち（不要パッケージ削除の確認や再起動確認のプロンプト）のまま待機していたため、`apt` のロック（PID 3665）が解放されていなかった。
 - **対処・解決手順**:
-  1. 実行中のバックグラウンドプロセスの確認:
+  1. `screen` セッションに再接続（アタッチ）:
      ```bash
-     ps aux | grep -E "apt|noble|unattended|dpkg"
+     sudo screen -r
+     # または
+     sudo screen -x ubuntu-release-upgrade-screen-window
      ```
-  2. 数分待機してバックグラウンド処理が完了するのを待つ（推奨）。
-  3. バックグラウンド処理終了後に再実行:
+  2. 画面上の指示（不要パッケージの削除 `y` / 再起動確認等）に回答し、アップグレードを最後まで正常完了させる。
+  3. アップグレード完了後、自動的に `screen` が終了し `apt` のロックが解放される。
+  4. 確認:
      ```bash
      sudo apt update
      ```
-  4. （スタックしている場合の強制解除）: プロセス終了確認後にロックファイルを安全に確認。
+- **手順書化に向けた知見**:
+  - `do-release-upgrade` を SSH 経由で行う場合、途中でセッションが切れたら `sudo screen -r` で復帰して完了させる必要がある。
 
 ---
 
