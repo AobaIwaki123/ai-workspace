@@ -76,21 +76,23 @@
 - **原因の特定**:
   - `do-release-upgrade` は、SSH 切断時にも処理が落ちないように自動で GNU `screen` セッション（`ubuntu-release-upgrade-screen-window`）を作成して実行される。
   - SSH 一時切断後、この `screen` セッション内で `do-release-upgrade` がユーザー入力待ち（不要パッケージ削除の確認や再起動確認のプロンプト）のまま待機していたため、`apt` のロック（PID 3665）が解放されていなかった。
-- **対処・解決手順**:
-  1. `screen` セッションに再接続（アタッチ）:
+- **対処・解決実績**:
+  1. `screen` セッションに再接続（アタッチ）を実行:
      ```bash
      sudo screen -r
-     # または
-     sudo screen -x ubuntu-release-upgrade-screen-window
      ```
-  2. 画面上の指示（不要パッケージの削除 `y` / 再起動確認等）に回答し、アップグレードを最後まで正常完了させる。
-  3. アップグレード完了後、自動的に `screen` が終了し `apt` のロックが解放される。
-  4. 確認:
+  2. 中断していたアップグレード画面への復帰を確認。指示（古い不要パッケージの削除確認や再起動プロンプト）を進めてアップグレードを完遂。
+  3. アップグレード完了後の確認と事後クリーンアップ:
      ```bash
-     sudo apt update
+     # OS バージョン確認
+     cat /etc/os-release
+
+     # パッケージリスト更新と残骸の削除
+     sudo apt update && sudo apt autoremove -y
      ```
 - **手順書化に向けた知見**:
-  - `do-release-upgrade` を SSH 経由で行う場合、途中でセッションが切れたら `sudo screen -r` で復帰して完了させる必要がある。
+  - `do-release-upgrade` をリモート SSH 経由で行う場合、途中でセッションが切れたら `sudo screen -r` で復帰してプロンプトを進める必要がある。
+  - 新規構築の統合手順書（Runbook）では、アップグレードではなく `wsl --install -d Ubuntu-24.04` による直接インストールを標準としつつ、既存環境からの移行トラブルシューティングとして本手順を併記する。
 
 ---
 
