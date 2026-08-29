@@ -139,7 +139,9 @@
     - `-AtLogOn`: Windows ログオン時に自動起動。
     - `-RunLevel Highest`: 管理者特権で実行（WSL / ネットワーク設定へのアクセスを確実化）。
     - `-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries`: バッテリー駆動時や省電力時でもタスクを止めない。
-    - `-ExecutionTimeLimit 0`: Windows タスクスケジューラのデフォルト制限（3日での強制終了）を解除し、無期限（24時間365日）連続稼働させる。
+    - `-ExecutionTimeLimit 0`: Windows タスクスケジューラのデフォルト制限（3日/72時間での強制終了）を解除し、無期限（24時間365日）連続稼働させる。
+      - **副作用とリスク**: 本来タスクがハング・暴走した際に OS が自動キルするセーフティネットが無効化される。
+      - **安全性の担保**: 本スクリプトは `Start-Sleep -Seconds 2` を挟み、通常時は `sleep infinity` でブロッキング待機するため CPU/メモリ負荷は実質 0.0% であり、暴走リスクは極めて低い。
     - `-RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1)`: 万が一 PowerShell プロセス自体が落ちても 1 分以内に Windows 側で自動再起動。
     - `Register-ScheduledTask -Force`: 既存タスクがあっても警告なしで安全に上書き更新。
 
