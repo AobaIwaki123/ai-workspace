@@ -36,8 +36,34 @@
 - **状況**:
   - WSL インスタンス内で SSH サーバー（`sshd`）を起動し、クライアントからの SSH 接続に成功。
   - 試行錯誤を交えて接続まで開通させた状態のため、今後のクリーンアップ対象を特定しつつ、続くサーバーミドルウェア・自動起動環境の構築に進む。
-- **直近の記録メモ**:
-  - 次のステップとして、開発ツール（Git, CLIツール、ランタイム）、コンテナ基盤（Docker / Podman）、Windows 起動時の自動起動（タスクスケジューラ / systemd 連携）等のセットアップを順次記録予定。
+
+---
+
+### 2026-08-29: Ubuntu 22.04 LTS から 24.04 LTS (Noble Numbat) へのアップグレード
+
+- **目的**: 最新の LTS リリース（Ubuntu 24.04 LTS）へ OS をアップグレードし、最新のカーネルモジュール・パッケージ群を利用可能にする
+- **実行した操作 / コマンド**:
+  ```bash
+  # パッケージの最新化とアップグレード
+  sudo apt update && sudo apt upgrade -y && sudo apt dist-upgrade -y
+  sudo apt autoremove -y
+
+  # リリースアップグレードの実行
+  sudo do-release-upgrade
+  ```
+- **検証・動作確認**:
+  ```bash
+  # OS バージョンの確認
+  lsb_release -a
+  # または
+  cat /etc/os-release
+
+  # SSH サービス稼働状況の確認（アップグレード後の再接続性）
+  sudo systemctl status ssh
+  ```
+- **手順書化に向けた知見・メモ**:
+  - 既存環境からのアップグレードは `do-release-upgrade` で実施するが、**最終的な統合手順書（新規構築手順）としては最初から `wsl --install -d Ubuntu-24.04` を指定してセットアップするルートを本線**として記載するのが最もクリーンで高速。
+  - アップグレード完了後は Windows 側で `wsl.exe --shutdown` を実行してから再起動すると、systemd やカーネルの更新が確実に反映される。
 
 ---
 

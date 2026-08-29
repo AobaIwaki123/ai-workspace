@@ -22,7 +22,7 @@
 | 項目 | 設定値 / 現状 | 備考 |
 | :--- | :--- | :--- |
 | **Windows OS** | Windows 11 / Windows 10 | (要確認) |
-| **Linux ディストリビューション** | Ubuntu 24.04 / 22.04 LTS 等 | `cat /etc/os-release` |
+| **Linux ディストリビューション** | Ubuntu 24.04 LTS (Noble Numbat) | `do-release-upgrade` 実施完了 |
 | **WSL バージョン** | WSL2 | `wsl -l -v` |
 | **systemd 有効化** | 有効 / 無効 | `/etc/wsl.conf` 内 `[boot] systemd=true` |
 
