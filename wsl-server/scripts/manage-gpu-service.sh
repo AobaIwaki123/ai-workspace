@@ -143,7 +143,9 @@ cleanup_old_models() {
 
     if [ "$deleted" -eq 1 ]; then
         echo "[INFO] Freeing trimmed SSD blocks to Windows host (fstrim)..."
-        sudo fstrim -v / 2>/dev/null || true
+        if command -v fstrim >/dev/null 2>&1; then
+            sudo -n fstrim / 2>/dev/null || true
+        fi
     else
         echo "  All models within retention limit ($count <= $max_models). No cleanup needed."
     fi
