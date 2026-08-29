@@ -53,17 +53,23 @@
   ```
 - **発生した事象・課題**:
   - アップグレード完了後、外部クライアントからの SSH 接続が拒否される（またはタイムアウト/認証失敗する）事象が発生。
-- **考えられる原因と切り分けポイント**:
-  1. **Ubuntu 24.04 の `ssh.socket` (Socket-based activation) 移行**:
-     - Ubuntu 24.04 では従来の `ssh.service` ではなく `ssh.socket` がデフォルト管理に変更。カスタムポート設定やデーモン直接起動との不整合が生じる場合がある。
-  2. **WSL2 の仮想 IP アドレス変更 (NAT モード)**:
-     - WSL の再起動に伴い WSL 仮想マシンの IP アドレスが変更され、Windows ホスト側の `netsh interface portproxy` 転送先と不一致になっている。
-  3. **`sshd_config.d` による認証設定の上書き**:
-     - アップグレード時に `/etc/ssh/sshd_config.d/` 配下に設定が追加され、パスワード認証無効化やポート設定が上書きされた可能性。
-  4. **OpenSSH 9.6p1 の暗号化アルゴリズム厳格化**:
-     - 古いクライアント鍵（ssh-rsa 等）の拒絶。
-- **復旧・トラブルシューティング手順**:
-  - Windows Terminal / PowerShell から `wsl` にローカルログインして原因を特定・対処。
+- **特定された根本原因**:
+  - Ubuntu 24.04 へのアップグレードに伴い SSH の起動方式が `ssh.socket` に切り替わったが、この `ssh.socket` が `inactive (dead)` の状態になっていたため、SSH ポート（22）の待ち受けが停止していた。
+- **復旧・恒久対応コマンド**:
+  ```bash
+  # 1. 不安定な ssh.socket を停止・無効化
+  sudo systemctl stop ssh.socket
+  sudo systemctl disable ssh.socket
+
+  # 2. 従来の常駐型 ssh.service を有効化・起動
+  sudo systemctl enable --now ssh.service
+
+  # 3. 稼働状態およびポート待ち受けの確認
+  sudo systemctl status ssh
+  sudo ss -tulpn | grep :22
+  ```
+- **統合手順書に向けた知見**:
+  - Ubuntu 24.04 では `ssh.socket` ではなく `ssh.service` を明示的に有効化（`sudo systemctl disable --now ssh.socket && sudo systemctl enable --now ssh.service`）する手順を Runbook に標準組み込みとする。
 
 ---
 
