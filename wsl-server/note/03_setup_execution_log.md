@@ -204,6 +204,23 @@
 
 ---
 
+### 2026-08-29: 宣言的ツール・ランタイムマネージャー `mise` の導入と一括セットアップ
+
+- **目的**: Node.js, Go, Python, GitHub CLI (`gh`), `jq`, `ripgrep`, `fzf` 等を `mise.toml` で完全宣言管理する
+- **作成した定義ファイル**:
+  - [**`wsl-server/mise.toml`**](../mise.toml): ツールとバージョンの一覧
+  - [**`wsl-server/scripts/setup-mise.sh`**](../scripts/setup-mise.sh): `mise` の自動インストール、シェル連携、ツール一括ダウンロード実行スクリプト
+- **実行手順 (WSL ターミナル)**:
+  ```bash
+  # 最新の変更を取得してスクリプトを実行
+  git pull origin feat/wsl-server-space
+  ./wsl-server/scripts/setup-mise.sh
+  ```
+- **効果**:
+  - `apt` でシステム環境を汚すことなく、全開発ツールが `~/.local/share/mise` に一発で安全・高速にインストールされる。
+
+---
+
 ### [次回作業枠]: コンテナ基盤 (Docker / Docker Compose) の導入
 
 - **目的**: 
