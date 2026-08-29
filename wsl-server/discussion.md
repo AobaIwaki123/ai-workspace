@@ -71,6 +71,7 @@ flowchart TD
   - [`note/04_troubleshooting_and_lessons_learned.md`](note/04_troubleshooting_and_lessons_learned.md): トラブルシューティング知見集・落とし穴マトリクス (全15件)
   - [`note/05_declarative_tool_management.md`](note/05_declarative_tool_management.md): 宣言的パッケージ・ツール管理ツールの選定比較
   - [`note/06_dotfiles_and_git_config_integration.md`](note/06_dotfiles_and_git_config_integration.md): Dotfiles & Git Config 統合パターンの比較
+  - [`note/07_server_hardware_and_spec_evaluation.md`](note/07_server_hardware_and_spec_evaluation.md): ハードウェア仕様・カーネル・仮想化サブシステムに基づく性能評価レポート
 
 ---
 
@@ -90,12 +91,13 @@ flowchart TD
 - [x] Windows タスクスケジューラ常駐化（`setup-autostart.bat`）と `sudo reboot` 自動復旧検証完了
 - [x] `mise` による全開発ツール（Node.js, Go, Python, gh, jq, ripgrep 等）の宣言的導入完了
 - [x] Antigravity CLI (`agy`) のインストール & Google OAuth 認証完了
-- [x] **[NEXT 1] SSH セキュリティの強化 (SSH Hardening)**:
-  - パスワード認証無効化（`PasswordAuthentication no`）、公開鍵認証徹底、rootログイン禁止、締め出し防止スクリプト（`scripts/harden-ssh.sh`）整備完了
-- [x] **[NEXT 2] 統合手順書（`SERVER_SETUP_GUIDE.md`）への清書**:
-  - ゼロからこの環境を一発再現できるクリーンな単一手順書の初版作成完了（Windows設定 -> WSL2 -> タスクスケジューラ常駐 -> mise -> SSH堅牢化）
+- [x] SSH セキュリティの強化（`harden-ssh.sh`）および公開鍵認証必須化完了
+- [x] 統合手順書（`SERVER_SETUP_GUIDE.md`）の初版作成完了
+- [x] **[NEW] 仕様・実測観測ベースの性能評価レポート（`note/07`）の作成完了**:
+  - CPU (Ryzen 5 4600H / 6C12T / Zen 2), メモリ (7.5GB / gradual reclaim), ストレージ (ext4 / none scheduler / TRIM), ネットワーク (Mirrored / 64キュー NIC / エフェメラルポート 4095) の多角分析完了
 - [ ] **[保留] Docker / Docker Compose（コンテナ基盤）のセットアップ**:
   - ユーザー指示により一旦不要として保留（将来必要時に着手）
+
 
 
 

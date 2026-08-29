@@ -249,7 +249,34 @@
 
 ---
 
-### [次回作業枠]: 単一統合手順書 (Runbook: SERVER_SETUP_GUIDE.md) の作成
+### 2026-08-29: 単一統合手順書 (Runbook: SERVER_SETUP_GUIDE.md) の作成
 
 - **目的**: ゼロからの環境再現手順（Windows設定 -> WSL2 -> タスクスケジューラ常駐 -> mise -> SSH堅牢化）を1つのマスター手順書に集約する
-- **メモ**: 試行錯誤ログの知見（note/04）を盛り込み、コピペで完全再現可能なドキュメントとして仕上げる。
+- **作成ファイル**:
+  - [**`wsl-server/SERVER_SETUP_GUIDE.md`**](../SERVER_SETUP_GUIDE.md): 完全再現用単一手順書 (Runbook)
+- **成果**:
+  - 試行錯誤ログの知見（`note/04`）を網羅し、ゼロからのクリーンインストール手順を一発で実行可能な Runbook として完成。
+
+---
+
+### 2026-08-29: 仕様・実測アロケーションに基づくサーバー性能・ボトルネック評価の実施
+
+- **目的**: 負荷ベンチマークを実行せず、カーネルパラメータ、ハードウェアアーキテクチャ、仮想化サブシステム、I/O スケジューラ、ネットワークスタック等の仕様および実測アロケーションからサーバー性能特性とボトルネック要因を網羅的に調査・評価する
+- **作成ファイル**:
+  - [**`wsl-server/note/07_server_hardware_and_spec_evaluation.md`**](07_server_hardware_and_spec_evaluation.md): 性能評価・仕様分析レポート
+- **主要な調査結果**:
+  1. **CPU / 計算能力**:
+     - AMD Ryzen 5 4600H (Zen 2, 7nm, 6C/12T, 3.0~4.0GHz)。AVX2, SHA-NI, AES-NI 対応。L3 キャッシュ 4MB。
+     - Constant/Reliable TSC による低オーバーヘッド時刻取得。主要脆弱性（Meltdown/L1TF/MDS等）ハードウェア無害。
+  2. **メモリサブシステム**:
+     - 7.5 GiB (WSL2 割当) / 2.0 GiB Swap。現時点で約 6.6 GiB (88%) の空き余力。
+     - `autoMemoryReclaim=gradual` によるホストへの動的返却、THP `[madvise]` 有効。
+  3. **ストレージ & I/O**:
+     - `/dev/sdd` (ext4 VHDX, 最大 1TB, 空き 950GB)。I/O スケジューラ `[none]` (パススルー最適化)、TRIM/discard 有効。
+  4. **ネットワークサブシステム**:
+     - Mirrored モードによるホスト LAN 直結 (192.168.11.15, NAT オーバーヘッド 0)。
+     - 64 TX/RX マルチキュー NIC (`qdisc mq`)、TSO/GSO/GRO ハードウェアオフロード。
+     - エフェメラルポート範囲 `44620 - 48715` (4095 ポート) の仕様を確認（大量外部通信時の留意点）。
+  5. **用途別適性**:
+     - Go/Rust/Node.js/Python による Web API、ISUCON 競技検証、小〜中規模 DB/Redis 基盤に極めて高い適性を確認。
+
