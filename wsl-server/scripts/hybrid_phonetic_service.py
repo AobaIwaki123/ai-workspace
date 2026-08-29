@@ -108,12 +108,20 @@ def convert_acronym(text: str) -> str:
     return ""
 
 def query_llm(word: str, endpoint="http://127.0.0.1:8080/v1/chat/completions") -> str:
-    """Fallback to LLM for brand names, English words, etc."""
+    """Fallback to LLM for brand names, English words, complex phrases with smart normalization."""
+    # If the word is entirely uppercase and contains spaces or is longer than 5 letters (e.g. DRAMATIC RECORD, FRUIT ZIPPER),
+    # normalize to Title Case to prevent BPE tokenizer from confusing common words with tech acronyms (like DRAM -> DRAMティック)
+    cleaned_word = word.strip()
+    if cleaned_word.isupper() and (" " in cleaned_word or len(cleaned_word) > 4):
+        input_word = cleaned_word.title()
+    else:
+        input_word = cleaned_word
+
     payload = {
         "model": "default-llm",
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"次の英単語の日本語カタカナ読みを出力してください: {word}"}
+            {"role": "user", "content": f"次の英単語の日本語カタカナ読みを出力してください: {input_word}"}
         ],
         "temperature": 0.0,
         "max_tokens": 32
@@ -122,7 +130,11 @@ def query_llm(word: str, endpoint="http://127.0.0.1:8080/v1/chat/completions") -
     req = urllib.request.Request(endpoint, data=data, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=10) as response:
         res_body = json.loads(response.read().decode("utf-8"))
-    return res_body["choices"][0]["message"]["content"].strip().split("\n")[0].strip()
+    
+    raw_res = res_body["choices"][0]["message"]["content"].strip().split("\n")[0].strip()
+    # Strip any accidental markdown formatting or quotes
+    clean_res = re.sub(r'[\*\"\'`]', '', raw_res)
+    return clean_res
 
 def hybrid_convert(word: str) -> tuple[str, str, float]:
     """
@@ -133,7 +145,11 @@ def hybrid_convert(word: str) -> tuple[str, str, float]:
     """
     t0 = time.perf_counter()
     
-    # 1. Exact Dictionary Match
+    # 1. Exact Dictionary Match (case-insensitive)
+    upper_word = word.strip().upper()
+    if upper_word in KNOWN_ACRONYMS:
+        lat = (time.perf_counter() - t0) * 1000
+        return KNOWN_ACRONYMS[upper_word], "DICT", lat
     if word in KNOWN_ACRONYMS:
         lat = (time.perf_counter() - t0) * 1000
         return KNOWN_ACRONYMS[word], "DICT", lat
