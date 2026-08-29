@@ -52,16 +52,40 @@
   sudo do-release-upgrade
   ```
 - **発生した事象・課題**:
-  - アップグレード完了後、外部クライアントからの SSH 接続が通らない（PowerShell から `wsl` ターミナルを開くと即座に接続可能になる現象を確認）。
-- **事象のメカニズム・特定結果**:
-  - **WSL2 のライフサイクルと仮想ネットワークのサスペンド**:
-    - `wsl.exe -l -v` で `Running` 表示であっても、インタラクティブセッションやアクティブなプロセスがない場合、WSL2 の仮想ネットワークインターフェース（vEthernet）が省電力/休止状態（Suspend）に入り、Windows ホスト側から WSL への着信パケットが届かなくなることがある。
-    - Windows 上でターミナル（WSL セッション）を開くことで仮想 NIC がアクティブ化（Wake up）され、ポート転送経由での SSH 疎通が回復する。
-- **恒久対策・手順書化に向けた設計要件**:
-  1. **Windows 起動時のバックグラウンド常駐タスク（Keep-Alive）**:
-     - Windows タスクスケジューラにて、ユーザーログオン時またはブート時に `wsl.exe -d Ubuntu -u <user> --exec sleep infinity` 等を非表示（バックグラウンド）で永続実行させ、WSL セッションおよび仮想 NIC を常にアクティブ状態に保つ。
-  2. **Mirrored ネットワークモードの採用（Windows 11 の場合）**:
-     - `.wslconfig` で `networkingMode=mirrored` を指定することで、仮想アダプタ/ポートフォワーディングのサスペンド問題を回避し、Windows ホストの NIC と直接同期させる。
+  - アップグレード完了後、外部クライアントからの SSH 接続が通らない（PowerShell で `wsl` 起動中を確認していたが、Windows 側で WSL ターミナルを直接開いた瞬間に接続可能になる現象を確認）。
+- **事象の記録とメモ**:
+  - 詳細原因は引き続き検証中だが、WSL2 のセッション状態やネットワークインターフェースの初期化タイミングに依存している可能性があるため、ログとして保持。
+  - 恒久対策の候補として、Windows タスクスケジューラによるバックグラウンド常駐化（Keep-Alive）や Mirrored ネットワークモードの適用を整理。
+
+---
+
+### 2026-08-29: `apt update` 実行時の lock 競合エラー (`/var/lib/apt/lists/lock`)
+
+- **目的**: アップグレード後のパッケージリスト更新
+- **実行したコマンド**:
+  ```bash
+  sudo apt update
+  ```
+- **発生したエラー**:
+  ```text
+  Reading package lists... Done
+  E: Could not get lock /var/lib/apt/lists/lock. It is held by process 3665 (noble)
+  N: Be aware that removing the lock file is not a solution and may break your system.
+  E: Unable to lock directory /var/lib/apt/lists/
+  ```
+- **原因**:
+  - Ubuntu 起動直後やアップグレード直後に、バックグラウンドの自動更新プロセス（`unattended-upgrades`, `apt-daily.service`, `release-upgrades` 等）が `apt` の排他ロックを取得して実行中であるため。
+- **対処・解決手順**:
+  1. 実行中のバックグラウンドプロセスの確認:
+     ```bash
+     ps aux | grep -E "apt|noble|unattended|dpkg"
+     ```
+  2. 数分待機してバックグラウンド処理が完了するのを待つ（推奨）。
+  3. バックグラウンド処理終了後に再実行:
+     ```bash
+     sudo apt update
+     ```
+  4. （スタックしている場合の強制解除）: プロセス終了確認後にロックファイルを安全に確認。
 
 ---
 
