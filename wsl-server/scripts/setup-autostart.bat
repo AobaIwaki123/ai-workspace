@@ -14,15 +14,11 @@ if %errorlevel% neq 0 (
 
 echo [2/3] Registering WSL Keep-Alive Scheduled Task...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$DistroName = 'Ubuntu';" ^
-    "$TaskName = 'WSL-AutoStart-Server';" ^
-    "$LoopCommand = 'while ($true) { wsl.exe -d ' + $DistroName + ' -u root --exec sleep infinity; Start-Sleep -Seconds 2 }';" ^
-    "$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ('-WindowStyle Hidden -NoProfile -NonInteractive -Command \"' + $LoopCommand + '\"');" ^
+    "$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -Command while($true){wsl.exe -d Ubuntu -u root --exec sleep infinity; Start-Sleep 2}';" ^
     "$Trigger = New-ScheduledTaskTrigger -AtLogOn;" ^
-    "$Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Highest;" ^
-    "$Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1);" ^
-    "Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings -Force;" ^
-    "Start-ScheduledTask -TaskName $TaskName;"
+    "$Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries;" ^
+    "Register-ScheduledTask -TaskName 'WSL-AutoStart-Server' -Action $Action -Trigger $Trigger -Settings $Settings -RunLevel Highest -Force;" ^
+    "Start-ScheduledTask -TaskName 'WSL-AutoStart-Server';"
 
 echo.
 echo [3/3] Checking Task & WSL Status:

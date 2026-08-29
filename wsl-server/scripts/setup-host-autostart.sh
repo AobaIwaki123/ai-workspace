@@ -19,15 +19,11 @@ fi
 
 # PowerShell コマンドを実行してタスクスケジューラに登録
 "$PS_EXE" -NoProfile -ExecutionPolicy Bypass -Command "
-    \$DistroName = '$DISTRO_NAME'
-    \$TaskName = '$TASK_NAME'
-    \$LoopCommand = 'while (\$true) { wsl.exe -d ' + \$DistroName + ' -u root --exec sleep infinity; Start-Sleep -Seconds 2 }'
-    \$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ('-WindowStyle Hidden -NoProfile -NonInteractive -Command \"' + \$LoopCommand + '\"')
+    \$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -Command while(\$true){wsl.exe -d $DISTRO_NAME -u root --exec sleep infinity; Start-Sleep 2}'
     \$Trigger = New-ScheduledTaskTrigger -AtLogOn
-    \$Principal = New-ScheduledTaskPrincipal -UserId \$env:USERNAME -LogonType Interactive -RunLevel Highest
-    \$Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1)
-    Register-ScheduledTask -TaskName \$TaskName -Action \$Action -Trigger \$Trigger -Principal \$Principal -Settings \$Settings
-    Start-ScheduledTask -TaskName \$TaskName
+    \$Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+    Register-ScheduledTask -TaskName '$TASK_NAME' -Action \$Action -Trigger \$Trigger -Settings \$Settings -RunLevel Highest -Force
+    Start-ScheduledTask -TaskName '$TASK_NAME'
 "
 
 echo "WSL Keep-Alive Task has been registered in Windows Task Scheduler."
