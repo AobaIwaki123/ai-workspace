@@ -1,29 +1,25 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # setup-host-autostart.sh
-# WSL (Linux) 内部から Windows 側のタスクスケジューラ常駐タスクを自動登録するスクリプト
+# WSL (Linux) 内部から Windows 側の register-autostart.ps1 を呼び出すスクリプト
 # ==============================================================================
 
 set -euo pipefail
 
-DISTRO_NAME="${1:-Ubuntu}"
-TASK_NAME="WSL-AutoStart-Server"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PS1_FILE="$SCRIPT_DIR/register-autostart.ps1"
 
-echo "Registering Windows Scheduled Task for WSL auto-recovery from inside Linux..."
+# Windows パスに変換
+if command -v wslpath >/dev/null 2>&1; then
+    WIN_PS1_PATH="$(wslpath -w "$PS1_FILE")"
+else
+    WIN_PS1_PATH="$PS1_FILE"
+fi
 
-# powershell.exe の存在確認
 PS_EXE="/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
 if [[ ! -f "$PS_EXE" ]]; then
     PS_EXE="powershell.exe"
 fi
 
-# PowerShell コマンドを実行してタスクスケジューラに登録
-"$PS_EXE" -NoProfile -ExecutionPolicy Bypass -Command "
-    \$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -Command while(\$true){wsl.exe -d $DISTRO_NAME -u root --exec sleep infinity; Start-Sleep 2}'
-    \$Trigger = New-ScheduledTaskTrigger -AtLogOn
-    \$Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-    Register-ScheduledTask -TaskName '$TASK_NAME' -Action \$Action -Trigger \$Trigger -Settings \$Settings -RunLevel Highest -Force
-    Start-ScheduledTask -TaskName '$TASK_NAME'
-"
-
-echo "WSL Keep-Alive Task has been registered in Windows Task Scheduler."
+echo "Running register-autostart.ps1 on Windows host..."
+"$PS_EXE" -NoProfile -ExecutionPolicy Bypass -File "$WIN_PS1_PATH"
