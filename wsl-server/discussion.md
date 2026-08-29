@@ -74,6 +74,7 @@ flowchart TD
   - [`note/07_server_hardware_and_spec_evaluation.md`](note/07_server_hardware_and_spec_evaluation.md): ハードウェア仕様・カーネル・仮想化サブシステムに基づく性能評価レポート
   - [`note/08_performance_benchmark_results.md`](note/08_performance_benchmark_results.md): GPU (GTX 1650 Ti)・LLM (`llama.cpp`)・ストレージ (ext4 vs 9p) 実機ベンチマーク測定結果レポート
   - [`note/09_gpu_phonetic_service_and_flexible_architecture.md`](note/09_gpu_phonetic_service_and_flexible_architecture.md): 柔軟なGPUサービス基盤（Storage Guard）& 英語カタカナ読み変換API仕様
+  - [`note/10_gpu_hardware_performance_and_capacity_evaluation.md`](note/10_gpu_hardware_performance_and_capacity_evaluation.md): GPUハードウェア性能・稼働時負荷・推論スループット・実用キャパシティ評価レポート (何Bまで実用可能か)
 
 ---
 
@@ -97,12 +98,16 @@ flowchart TD
 - [x] 統合手順書（`SERVER_SETUP_GUIDE.md`）の初版作成完了
 - [x] 仕様・実測観測ベースの性能評価レポート（`note/07`）の作成完了
 - [x] 実機ベンチマーク（GPU / LLM / ストレージ I/O）の測定完了 (`note/08`)
-- [x] **[NEW] 柔軟なGPUサービス基盤（Storage Guard）と英語カタカナ読み変換APIの構築完了 (`note/09`)**:
-  - `manage-gpu-service.sh` によるストレージ容量節約（単一モデル維持・fstrim連携）とHot-Swap切り替えの確立
-  - Qwen2.5 1.5B (VRAM 1.1GB) による「AKB -> エーケービー」「AWS -> エーダブリューエス」の完全精度変換を実証
-  - 自宅 k8s クラスタ向け ExternalName Service 設定マニフェスト整備
+- [x] 柔軟なGPUサービス基盤（Storage Guard）と英語カタカナ読み変換APIの構築完了 (`note/09`)
+- [x] **[NEW] GPUハードウェア性能・稼働時負荷・実用キャパシティ評価の完了 (`note/10`)**:
+  - モデル保持数を直近10件（`MAX_KEEP_MODELS=10`）へ拡張
+  - 稼働時 GPU 負荷（VRAM / 利用率 / 温度45°C / 電力22W）の実機サンプリング計測完了
+  - 0.5B〜3B クラスのスループット実測と、本 GPU (GTX 1650 Ti 4GB) の実用運用上限が **「3B〜4B クラス (Q4〜Q5)」** であることを物理構造・PCIe 帯域から実証
+- [ ] **[NEXT] 3B〜4B 帯の有力モデル候補比較実験**:
+  - `Llama-3.2-3B-Instruct`, `Qwen2.5-3B-Instruct`, `Gemma-2-2B-jpn`, `Phi-3.5-mini` のベンチマーク比較
 - [ ] **[保留] Docker / Docker Compose（コンテナ基盤）のセットアップ**:
   - ユーザー指示により一旦不要として保留（将来必要時に着手）
+
 
 
 
