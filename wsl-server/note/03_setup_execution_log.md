@@ -222,12 +222,34 @@
 
 ---
 
-### [次回作業枠]: コンテナ基盤 (Docker / Docker Compose) の導入
+### 2026-08-29: SSH サーバーセキュリティ強化（Hardening）と締め出し防止の確立
 
-- **目的**: 
-- **実行したコマンド**:
-- **メモ**:
+- **目的**: Mirrored モードでホスト LAN に公開されている SSH サーバーの安全性を高めるため、パスワード認証を無効化し公開鍵認証を徹底する
+- **作成した定義・スクリプト**:
+  - [**`wsl-server/adr/0005-ssh-hardening-and-key-authentication.md`**](../adr/0005-ssh-hardening-and-key-authentication.md): 設計方針と決定事項
+  - [**`wsl-server/scripts/harden-ssh.sh`**](../scripts/harden-ssh.sh): 締め出し防止検証付き SSH 堅牢化スクリプト
+- **強化設定の内容 (`/etc/ssh/sshd_config.d/99-server-hardening.conf`)**:
+  - `PubkeyAuthentication yes`: 公開鍵認証の有効化
+  - `PasswordAuthentication no`: パスワード認証の完全無効化
+  - `PermitEmptyPasswords no`: 空パスワードの拒絶
+  - `KbdInteractiveAuthentication no`: チャレンジ・レスポンス認証の無効化
+  - `PermitRootLogin no`: root アカウントでの直接ログイン禁止
+- **安全機構 (Safety Guards)**:
+  - スクリプト実行時に `~/.ssh/authorized_keys` の存在と有効鍵行数を事前検査し、0件の場合は設定適用を中断（締め出し事故防止）。
+  - `sshd -t` による構文チェックが通過した場合のみ `systemctl restart ssh.service` を実行。
+- **実行手順 (WSL ターミナル)**:
+  ```bash
+  # セキュリティ強化の適用
+  sudo ./wsl-server/scripts/harden-ssh.sh
+  ```
+- **実行結果**:
+  - `~/.ssh/authorized_keys` に登録された公開鍵を確認後、`/etc/ssh/sshd_config.d/99-server-hardening.conf` を正常配備。
+  - 構文検証 `sshd -t` を通過し、`ssh.service` の再起動に成功。
+  - クライアント側からパスワード認証なし（公開鍵のみ）での安全な SSH 接続を確認。
 
+---
 
+### [次回作業枠]: 単一統合手順書 (Runbook: SERVER_SETUP_GUIDE.md) の作成
 
-
+- **目的**: ゼロからの環境再現手順（Windows設定 -> WSL2 -> タスクスケジューラ常駐 -> mise -> SSH堅牢化）を1つのマスター手順書に集約する
+- **メモ**: 試行錯誤ログの知見（note/04）を盛り込み、コピペで完全再現可能なドキュメントとして仕上げる。

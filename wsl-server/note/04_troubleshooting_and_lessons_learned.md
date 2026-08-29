@@ -23,6 +23,9 @@
 | **10** | **PowerShell Set-Content** | `Set-Content -Encoding` パラメータがバージョンにより非互換で落ちる | PowerShell 5.1/7.x で `-Encoding` の受け入れ値（UTF8, utf8NoBOM 等）や存在差異がある | PowerShell の `Set-Content` を使わず、バッチ自身が `(echo ... ) > %USERPROFILE%\.wsl_keepalive.ps1` で直接書き出す方式を採用 |
 | **11** | **mise ツール名指定** | `ubi:cli/cli` 等でアーカイブ内バイナリ名不一致エラー | `ubi` バックエンドは非推奨となり、リポジトリ名と実行ファイル名（`gh` vs `cli`）の齟齬が起きる | `gh = "latest"`, `ripgrep = "latest"`, `starship = "latest"` など mise 公式標準ネイティブ名で宣言する |
 | **12** | **~/.local/bin PATH未反映** | `agy` や `mise` 実行時に `command not found` | `~/.local/bin` が現在のセッションの `$PATH` に未反映（ログインシェル再起動待ち） | `~/.bashrc` / `~/.zshrc` に `export PATH="$HOME/.local/bin:$PATH"` を永続化し `source` を促す |
+| **13** | **SSH 締め出し (Lockout)** | パスワード認証無効化後に接続不能になる | クライアントの公開鍵が `~/.ssh/authorized_keys` に登録される前にパスワード遮断した | スクリプト内で `authorized_keys` の存在と有効鍵行数を事前検証し、0件時は遮断処理をブロック |
+| **14** | **SSH 設定競合・上書き** | `apt upgrade openssh-server` 時に設定が衝突・初期化 | `/etc/ssh/sshd_config` を直接書き換えていたためパッケージ更新プロンプトが発生 | `/etc/ssh/sshd_config.d/99-server-hardening.conf` による非破壊ドロップイン管理を採用 |
+| **15** | **sshd 構文エラー事故** | 設定リロード後に `sshd` が停止・再接続不能 | 設定パラメータのタイポや非互換構文でデーモンがクラッシュ | 反映直前に `sshd -t` による構文検証を必須化し、失敗時は即座に自動ロールバック |
 
 ---
 
@@ -60,3 +63,12 @@
      New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -File `"$ps1Path`""
      ```
   3. バッチファイル（`.bat`）から配布する場合は、バッチ自身が一時 `.ps1` を作成して実行する「自己生成方式」を用いる。
+
+---
+
+### 3.4 SSH セキュリティ強化と安全なドロップイン管理
+- **詳細**: サーバーをホストネットワーク（Mirrored Mode）で外部公開する際、ブルートフォース攻撃対策としてパスワード認証を無効化する必要がある。しかし、安易に `/etc/ssh/sshd_config` を編集すると、(1) 締め出し事故、(2) パッケージ更新時の設定衝突、(3) 構文エラーによるデーモン停止のリスクがある。
+- **再発防止策**:
+  1. `/etc/ssh/sshd_config.d/99-server-hardening.conf` に設定を隔離。
+  2. 反映前に `grep -v '^#' ~/.ssh/authorized_keys` で公開鍵存在を確認。
+  3. 反映前に `sshd -t` を実行し、0 以外の終了コード時はファイルを削除してロールバック。

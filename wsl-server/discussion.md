@@ -24,7 +24,7 @@
 | **Phase 3** | **Linux 基本環境 & SSH 接続** | パッケージ更新、SSHサーバー起動、Mirrored Mode 接続確立 | [完了] | `note/02_ssh_server_connection_and_current_state.md`, `adr/0001` |
 | **Phase 4** | **自動常駐・復旧 (Keep-Alive)** | 内部reboot対応タスクスケジューラ登録、文字コード・エスケープ落とし穴解消 | [確立] | `note/04_troubleshooting_and_lessons_learned.md`, `adr/0002` |
 | **Phase 5** | **実機セットアップ & 生ログ記録** | 開発環境、Docker/Podman、ツール導入などの作業ログ逐次蓄積 | [進行中] | `note/03_setup_execution_log.md` |
-| **Phase 6** | **統合手順書 (Runbook) の清書 & 検証** | 試行錯誤ログをもとに無駄を削ぎ落とした単一のマスター手順書 `SERVER_SETUP_GUIDE.md` を完成 | [未着手] | `SERVER_SETUP_GUIDE.md` |
+| **Phase 6** | **統合手順書 (Runbook) の清書 & 検証** | 試行錯誤ログをもとに無駄を削ぎ落とした単一のマスター手順書 `SERVER_SETUP_GUIDE.md` を完成 | [初版作成完了] | `SERVER_SETUP_GUIDE.md` |
 
 ---
 
@@ -68,7 +68,7 @@ flowchart TD
   - [`note/01_requirements_and_architecture.md`](note/01_requirements_and_architecture.md): 要件定義と全体アーキテクチャ設計
   - [`note/02_ssh_server_connection_and_current_state.md`](note/02_ssh_server_connection_and_current_state.md): 現状構成シート（Mirrored Mode, Ubuntu 24.04）
   - [`note/03_setup_execution_log.md`](note/03_setup_execution_log.md): 実機セットアップ作業生ログ（トラブル・解決策・コマンド履歴）
-  - [`note/04_troubleshooting_and_lessons_learned.md`](note/04_troubleshooting_and_lessons_learned.md): トラブルシューティング知見集・落とし穴マトリクス (全12件)
+  - [`note/04_troubleshooting_and_lessons_learned.md`](note/04_troubleshooting_and_lessons_learned.md): トラブルシューティング知見集・落とし穴マトリクス (全15件)
   - [`note/05_declarative_tool_management.md`](note/05_declarative_tool_management.md): 宣言的パッケージ・ツール管理ツールの選定比較
   - [`note/06_dotfiles_and_git_config_integration.md`](note/06_dotfiles_and_git_config_integration.md): Dotfiles & Git Config 統合パターンの比較
 
@@ -80,6 +80,7 @@ flowchart TD
 - [**`ADR-0002: WSL 常駐化および内部再起動時の自動復旧（Keep-Alive Loop）の採用`**](adr/0002-wsl-keepalive-and-auto-recovery.md) - Ubuntu内部reboot/停止時にも2秒で自動再起動する監視ループタスクの標準化
 - [**`ADR-0003: mise による言語ランタイム・CLIツールの宣言的管理の採用`**](adr/0003-declarative-tool-management-with-mise.md) - mise.toml による全開発ツール・ランタイムの一括宣言管理の標準化
 - [**`ADR-0004: サプライチェーン攻撃対策としてのバージョン遅延（7-day Cooldown）および Lockfile 検証の採用`**](adr/0004-supply-chain-security-and-version-cooldown.md) - latest禁止・7日経過安定版固定・チェックサム検証の標準化
+- [**`ADR-0005: SSH セキュリティ強化（公開鍵認証必須化・パスワード認証無効化・sshd_config.d 管理）の採用`**](adr/0005-ssh-hardening-and-key-authentication.md) - 締め出し防止検証付きパスワード遮断とドロップイン設定による堅牢化の標準化
 
 ---
 
@@ -89,12 +90,12 @@ flowchart TD
 - [x] Windows タスクスケジューラ常駐化（`setup-autostart.bat`）と `sudo reboot` 自動復旧検証完了
 - [x] `mise` による全開発ツール（Node.js, Go, Python, gh, jq, ripgrep 等）の宣言的導入完了
 - [x] Antigravity CLI (`agy`) のインストール & Google OAuth 認証完了
-- [ ] **[NEXT 1] Docker / Docker Compose（コンテナ基盤）のセットアップ**:
-  - Docker 公式 APT リポジトリの登録、`docker-ce`, `docker-compose-plugin` 導入、非 root 権限設定（`usermod -aG docker`）
-- [ ] **[NEXT 2] SSH セキュリティの強化**:
-  - パスワード認証無効化（`PasswordAuthentication no`）、公開鍵認証の徹底
-- [ ] **[NEXT 3] 統合手順書（`SERVER_SETUP_GUIDE.md`）への清書と検証**:
-  - ゼロからこの環境を一発再現できるクリーンな単一手順書の作成
+- [x] **[NEXT 1] SSH セキュリティの強化 (SSH Hardening)**:
+  - パスワード認証無効化（`PasswordAuthentication no`）、公開鍵認証徹底、rootログイン禁止、締め出し防止スクリプト（`scripts/harden-ssh.sh`）整備完了
+- [x] **[NEXT 2] 統合手順書（`SERVER_SETUP_GUIDE.md`）への清書**:
+  - ゼロからこの環境を一発再現できるクリーンな単一手順書の初版作成完了（Windows設定 -> WSL2 -> タスクスケジューラ常駐 -> mise -> SSH堅牢化）
+- [ ] **[保留] Docker / Docker Compose（コンテナ基盤）のセットアップ**:
+  - ユーザー指示により一旦不要として保留（将来必要時に着手）
 
 
 
