@@ -118,23 +118,17 @@
 
 ---
 
-### 2026-08-29: 停止（Stopped）状態からの WSL 起動と疎通確認
+### 2026-08-29: ターミナル終了に伴う WSL 停止（Stopped）事象と恒久常駐化の必要性
 
-- **目的**: アップグレード後の停止状態から WSL を再起動し、新環境への SSH 疎通を確認
-- **実行手順 (Windows PowerShell)**:
-  ```powershell
-  # 状態確認（Stopped を確認）
-  wsl.exe -l -v
-
-  # バックグラウンド起動（画面非表示で常駐起動）
-  Start-Process wsl.exe -ArgumentList "-d Ubuntu -u root --exec sleep infinity" -WindowStyle Hidden
-  ```
-- **検証 (クライアント端末からの SSH ログイン & OS確認)**:
-  ```bash
-  ssh <user>@<WindowsIP>
-  cat /etc/os-release
-  sudo systemctl status ssh
-  ```
+- **目的**: ターミナル画面を開いておかなくても WSL を 24時間365日バックグラウンド常駐させる
+- **発生した事象**:
+  - Windows Terminal や PowerShell で WSL を手動起動すると SSH 接続可能になるが、**ターミナル画面を閉じると数十秒で WSL が Stopped になり SSH が切断される**事象を確認。
+  - OS 再起動後や手動起動時に毎回 PowerShell コマンドを叩かないとサーバーとして機能しない課題を特定。
+- **原因 (WSL のプロセスライフサイクル)**:
+  - WSL はデフォルトで、アクティブなフォアグラウンドプロセス（開いているターミナルセッション）が無くなると、自動的にインスタンスを終了（Stopped）させてメモリを解放する省電力仕様になっている。
+- **恒久対策 (Windows タスクスケジューラへの常駐スクリプト登録)**:
+  - 毎回手動で PowerShell を叩く必要をなくすため、Windows タスクスケジューラに「ログオン時にバックグラウンドで `wsl.exe ... sleep infinity` を実行するタスク」を1度だけ登録する。
+  - これにより、ターミナルを開かなくても・閉じても・Windows 再起動後も、WSL インスタンスが永続的にバックグラウンド常駐する。
 
 ---
 
@@ -143,4 +137,5 @@
 - **目的**: 
 - **実行したコマンド**:
 - **メモ**:
+
 
