@@ -8,25 +8,17 @@ param (
 
 Write-Host "Setting up resilient background keep-alive task for WSL distro: $DistroName..." -ForegroundColor Cyan
 
-# 1. 既存タスクの確認・削除（重複防止）
-$TaskName = "WSL-AutoStart-Server"
-$ExistingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-if ($ExistingTask) {
-    Write-Host "Updating existing task: $TaskName..." -ForegroundColor Yellow
-    Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
-}
-
-# 2. タスク定義の作成
+# 1. タスク定義の作成
 # - PowerShell ループにより、WSL 内部で reboot や crash が発生しても 2秒後に自動再起動する
+$TaskName = "WSL-AutoStart-Server"
 $LoopCommand = "while (`$true) { wsl.exe -d $DistroName -u root --exec sleep infinity; Start-Sleep -Seconds 2 }"
 $Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -NoProfile -NonInteractive -Command `"$LoopCommand`""
 $Trigger = New-ScheduledTaskTrigger -AtLogOn
 $Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Highest
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1)
 
-# 3. タスクスケジューラへの登録
-Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings
+# 2. タスクスケジューラへの登録（-Force で既存タスクを自動上書き）
+Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings -Force
 
 # 4. タスクの即時開始
 Write-Host "Starting task immediately..." -ForegroundColor Cyan

@@ -21,8 +21,6 @@ fi
 "$PS_EXE" -NoProfile -ExecutionPolicy Bypass -Command "
     \$DistroName = '$DISTRO_NAME'
     \$TaskName = '$TASK_NAME'
-    Stop-ScheduledTask -TaskName \$TaskName -ErrorAction SilentlyContinue
-    Unregister-ScheduledTask -TaskName \$TaskName -Confirm:\$false -ErrorAction SilentlyContinue
     \$LoopCommand = 'while (\$true) { wsl.exe -d ' + \$DistroName + ' -u root --exec sleep infinity; Start-Sleep -Seconds 2 }'
     \$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ('-WindowStyle Hidden -NoProfile -NonInteractive -Command \"' + \$LoopCommand + '\"')
     \$Trigger = New-ScheduledTaskTrigger -AtLogOn

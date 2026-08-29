@@ -16,8 +16,6 @@ echo [2/3] WSL 自動常駐・自動復旧タスク (Keep-Alive Loop) を登録�
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$DistroName = 'Ubuntu';" ^
     "$TaskName = 'WSL-AutoStart-Server';" ^
-    "Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue;" ^
-    "Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue;" ^
     "$LoopCommand = 'while ($true) { wsl.exe -d ' + $DistroName + ' -u root --exec sleep infinity; Start-Sleep -Seconds 2 }';" ^
     "$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ('-WindowStyle Hidden -NoProfile -NonInteractive -Command \"' + $LoopCommand + '\"');" ^
     "$Trigger = New-ScheduledTaskTrigger -AtLogOn;" ^
