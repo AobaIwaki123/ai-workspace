@@ -1,0 +1,26 @@
+# wsl-server/mise.toml
+# WSL サーバー用 宣言的ツール・ランタイム定義ファイル
+# サプライチェーン攻撃対策: 7日以上経過した検証済み安定バージョンを明示固定 (ADR-0004)
+
+[tools]
+# --- 言語ランタイム & パッケージマネージャ ---
+node = "20"                    # Node.js Active LTS
+go = "1.23"                    # Go 安定版
+python = "3.12"                # Python 3.12 安定版
+uv = "0.4"                     # uv 安定版
+
+# --- CLI ツール群 (7日以上経過・コミュニティ検証済みの安定版固定) ---
+gh = "2.55.0"                  # GitHub CLI (gh)
+jq = "1.7.1"                   # JSON プロセッサ (jq)
+ripgrep = "14.1.0"             # 高速 grep (rg)
+fd = "10.2.0"                  # 高速 find (fd)
+fzf = "0.54.3"                 # 曖昧検索 (fzf)
+bat = "0.24.0"                 # シンタックスハイライト付き cat (bat)
+eza = "0.19.0"                 # モダンな ls (eza)
+delta = "0.18.2"               # Git 差分ビューア (delta)
+starship = "1.20.1"            # 高速プロンプト (starship)
+
+[settings]
+experimental = true
+legacy_version_file = true
+paranoid = true                # チェックサム未検証バイナリの実行拒否・厳格モード
