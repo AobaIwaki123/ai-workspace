@@ -96,19 +96,34 @@
 
 ---
 
-### [次回作業枠]: 基本開発ツール & パッケージの導入
-
-- **目的**: 
-- **実行したコマンド**:
-- **メモ**:
-
 ---
 
-### [次回作業枠]: Windows 起動時の WSL / サービス常駐・自動起動設定
+### 2026-08-29: WSL 再起動後の自動復旧不可（外部からの SSH 接続不可）課題
 
-- **目的**: 
-- **実行したコマンド**:
-- **メモ**:
+- **目的**: OS 再起動後の WSL インスタンス自動復旧および外部 SSH 接続性の確保
+- **発生した事象**:
+  - `do-release-upgrade` 完了に伴う再起動（Restart）後、WSL が停止状態（または未起動状態）となり、外部から SSH 接続できない（自動復旧しない）事象を確認。
+- **原因**:
+  - WSL2 はデフォルトでオンデマンド起動（Windows 側でコマンドやターミナルが叩かれた時に起動）するため、再起動後は Windows 側で `wsl.exe` を叩くトリガーが存在しない限り起動せず、外部からの着信パケットだけでは起動しない。
+- **解決策 (Windows タスクスケジューラによるブート時/ログオン時自動起動)**:
+  - Windows 側で以下の PowerShell（管理者）コマンドを実行し、タスクスケジューラに「Windows 起動時/ログオン時にバックグラウンドで WSL を自動起動・常駐させるタスク」を登録する。
+  ```powershell
+  # タスク名: WSL-AutoStart
+  # 動作: ログオン時に非表示で wsl.exe をバックグラウンド起動し常駐維持
+  $Action = New-ScheduledTaskAction -Execute "wsl.exe" -Argument "-d Ubuntu-24.04 -u root --exec sleep infinity"
+  $Trigger = New-ScheduledTaskTrigger -AtLogOn
+  $Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Highest
+  $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0
+  Register-ScheduledTask -TaskName "WSL-AutoStart" -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings
+  ```
+- **検証**:
+  - タスクの手動実行テスト:
+    ```powershell
+    Start-ScheduledTask -TaskName "WSL-AutoStart"
+    ```
+  - WSL がバックグラウンドで立ち上がり、クライアントから即座に SSH 接続できることを確認。
+
+---
 
 ---
 
