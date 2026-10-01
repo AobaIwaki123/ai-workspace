@@ -30,6 +30,7 @@
 - [02_times_car_license_leak_investigation.md](./note/02_times_car_license_leak_investigation.md): タイムズカー（パーク24）免許証画像流出事案の調査と被害対策
 - [03_credit_bureau_precautions_and_comparison.md](./note/03_credit_bureau_precautions_and_comparison.md): 個人信用情報機関（本人申告）の共通注意点と機関別差異の比較
 - [04_cic_and_ksc_declaration_procedures.md](./note/04_cic_and_ksc_declaration_procedures.md): CICおよびKSC（全銀協）インターネット本人申告の完全実行手順書
+- [05_drivers_license_reissue_and_police_consultation_guide.md](./note/05_drivers_license_reissue_and_police_consultation_guide.md): 運転免許証の再交付制度・12桁番号の仕組みと警察相談実務ガイド
 
 ---
 

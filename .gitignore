@@ -8,14 +8,20 @@ __pycache__/
 models/
 *.gguf
 scratch/
+# Environment, Secrets & Credentials
+.env
+.env.*
 *.env
+*.env.*
+*.secret
+*.token
+*.pem
+*.key
+private/
+secrets/
 
 # Git Worktrees & Shared cross-worktree directory
 .worktrees/
 .shared/
 shared/
 .gemini
-
-# Private Workspace & Personal Notes
-private/
-

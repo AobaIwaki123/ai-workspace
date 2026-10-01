@@ -84,7 +84,9 @@
       "command((/usr/lib/wsl/lib/)?nvidia-smi( .*)?)",
       "command(.*llama-bench( .*)?)",
       "command(.*llama-cli( .*)?)",
-      "command(.*llama-server( .*)?)"
+      "command(.*llama-server( .*)?)",
+      "command(code .*)",
+      "command((\\./)?space/.*/scripts/.*)"
     ],
     "deny": [
       "command(rm -rf /)",
