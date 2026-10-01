@@ -1,6 +1,6 @@
-# Discord Message Content Intent と権限モデルの技術仕様・検証ノート
+# Discord Message Content Intent の 2 段階有効化ルールと Token ライフサイクル
 
-本ドキュメントは、Discord Bot においてメッセージ本文を取得するために必要な **Message Content Intent（特権インテント）の 2 段階有効化メカニズム**、トークン再生成や反映遅延に関する仕様、および権限境界をまとめた技術ノートです。
+本ドキュメントは、Discord Bot においてメッセージ本文を取得するために必要な **Message Content Intent（特権インテント）の 2 段階有効化メカニズム**、トークン再生成や反映遅延に関する仕様、および権限境界の知見をまとめた技術ノートです。
 
 ---
 
@@ -54,16 +54,7 @@ Discord はスパム防止とプライバシー保護のため、以下の 3 つ
 
 ---
 
-## 4. スラッシュコマンド (Interactions API) との権限境界
-
-特権インテントの有効化を回避したい場合、**スラッシュコマンド (`/agy`)** が最も安全かつスマートな代替手段となります。
-
-- **理由**: スラッシュコマンドはメッセージを「盗聴・傍受」するのではなく、ユーザーが明示的に Bot へ「フォーム送信」する構造（Interactions）であるため、`MESSAGE_CONTENT` 特権インテントが完全に不要です。
-- **タイムアウト設計**: ただし、スラッシュコマンドは Discord Gateway 側で **3 秒以内の一次応答 (`deferReply`) が必須** であり、これを超えると「インタラクションに失敗しました」となる点に注意が必要です。
-
----
-
-## 5. 参考リソース・一次情報源
+## 4. 参考リソース・一次情報源
 
 * [Discord Developer Portal: Gateway Intents Documentation](https://discord.com/developers/docs/topics/gateway#gateway-intents)
 * [Discord Developer Portal: Message Content Privileged Intent FAQ](https://support-dev.discord.com/hc/en-us/articles/4404772028055-Message-Content-Privileged-Intent-FAQ)
