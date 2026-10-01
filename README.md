@@ -24,12 +24,12 @@ AIと協業するためのワークスペース集
 
 ---
 
-## Git Worktree 開発運用
+## Git 開発運用と Worktree
 
-本リポジトリでは原則として **Git Worktree** を用いて並行作業を行います。
+本リポジトリはドキュメント・調査・設計の蓄積が中心であるため、**Git Worktree の利用は任意（オプショナル）**です。通常はリポジトリ直下でのトピックブランチ作成（`git switch -c <branch>`）で直接作業できます。並行タスクや作業環境の分離が必要な場合に限り、**Git Worktree** を活用します。
 
 ```bash
-# 新規タスク用Worktreeを作成
+# （任意）並行作業用のWorktreeを作成する場合
 ./.agents/skills/git-worktree/scripts/worktree.sh create feature/<task-name> main
 
 # Worktree一覧を確認
