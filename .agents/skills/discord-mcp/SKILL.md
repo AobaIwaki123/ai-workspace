@@ -109,6 +109,12 @@ Discord ツールは Lazy MCP ツールとして登録されており、`call_mc
 }
 ```
 
+### ワークフロー E: 双方向 Bot Runner による自律応答
+Discord メンションやスラッシュコマンド（`/agy`）起点で Antigravity CLI（`agy`）を常駐起動させる場合、`space/discord/bot/` の実装パターンに従います。
+- **特権インテントの回避**: Bot 自身への @メンションまたはスラッシュコマンド経由であれば、`Message Content Intent` が無効でもプロンプト文字列を正常に受信可能。
+- **スマートチャンキング**: 2000 文字制限を回避するため、1900 文字以内の直近改行（`\n`）で安全に分割送信。
+- **リポジトリルート実行**: `cwd` に `ai-workspace` ルートを指定することで、全スキル・AGENTS.md・設計資産を読み込ませて自律解決。
+
 ---
 
 ## 4. Bot Token 利用時の重要制約
@@ -140,5 +146,5 @@ Discord 操作を行った後は、以下の手順で成否を確認します:
 ## 6. 関連リファレンス
 
 - [**`references/tools-reference.md`**](./references/tools-reference.md): 全ツールの詳細仕様、引数一覧、Bot 利用可否マトリクス
-- [**`references/troubleshooting-and-auth.md`**](./references/troubleshooting-and-auth.md): 401/403/429 エラー原因と対策、Bot 権限設計、トークン仕様
-- [**`references/patterns-and-best-practices.md`**](./references/patterns-and-best-practices.md): 長文分割送信、返信、リアクション活用、セキュリティ運用
+- [**`references/troubleshooting-and-auth.md`**](./references/troubleshooting-and-auth.md): 401/403/429 エラー原因と対策、特権インテント回避策、Bot 権限設計、トークン仕様
+- [**`references/patterns-and-best-practices.md`**](./references/patterns-and-best-practices.md): 改行優先チャンキング関数、双方向 Bot Runner パターン、長文分割送信、セキュリティ運用
