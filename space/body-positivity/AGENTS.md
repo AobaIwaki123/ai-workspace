@@ -7,7 +7,7 @@
 ## ディレクトリ構成と役割
 
 ```
-body-positivity/
+space/body-positivity/
 ├── AGENTS.md             # 本規約ファイル（スコープ・調査方針）
 ├── discussion.md         # 調査目的、論点整理、進捗管理
 ├── note/                 # 調査・分析ドキュメント（01_xxx.md 形式で蓄積）

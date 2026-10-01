@@ -15,3 +15,7 @@ scratch/
 .shared/
 shared/
 .gemini
+
+# Private Workspace & Personal Notes
+private/
+
