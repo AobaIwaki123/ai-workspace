@@ -20,13 +20,13 @@ if [[ -z "$WORKSPACE_NAME" ]]; then
   exit 1
 fi
 
-TARGET_DIR="./$WORKSPACE_NAME"
+TARGET_DIR="./space/$WORKSPACE_NAME"
 
 if [[ -d "$TARGET_DIR" ]]; then
-  echo "⚠️ Workspace directory '$TARGET_DIR' already exists."
+  echo "Warning: Workspace directory '$TARGET_DIR' already exists."
 fi
 
-echo "🚀 Scaffolding workspace '$WORKSPACE_NAME' ($WORKSPACE_TITLE)..."
+echo "Scaffolding workspace '$WORKSPACE_NAME' ($WORKSPACE_TITLE) in $TARGET_DIR..."
 
 mkdir -p "$TARGET_DIR/note"
 mkdir -p "$TARGET_DIR/adr"
@@ -41,10 +41,10 @@ if [[ ! -f "$TARGET_DIR/AGENTS.md" ]]; then
 
 ---
 
-## 📁 ディレクトリ構成と役割
+## ディレクトリ構成と役割
 
 \`\`\`
-$WORKSPACE_NAME/
+space/$WORKSPACE_NAME/
 ├── AGENTS.md             # 本規約ファイル（スコープ・開発ルール）
 ├── discussion.md         # 議論の方向性、要件定義、進捗管理、アクションアイテム
 ├── note/                 # 調査・検証・技術メモ（01_xxx.md 形式で蓄積）
@@ -54,7 +54,7 @@ $WORKSPACE_NAME/
 
 ---
 
-## 📋 運用ルール
+## 運用ルール
 
 1. **進捗・議論の記録 (\`discussion.md\`)**
    - 議論の前提、目的、課題、ネクストアクションを常に最新に保ちます。
@@ -65,7 +65,7 @@ $WORKSPACE_NAME/
 4. **再現性の確保 (\`scripts/\`)**
    - 検証用スクリプトや実行手順は \`scripts/\` 配下にコード化して残します。
 EOF
-  echo "  ✅ Created $TARGET_DIR/AGENTS.md"
+  echo "  Created $TARGET_DIR/AGENTS.md"
 fi
 
 # 2. discussion.md
@@ -77,33 +77,33 @@ if [[ ! -f "$TARGET_DIR/discussion.md" ]]; then
 
 ---
 
-## 🎯 目的・ゴール
+## 目的・ゴール
 
 - 
 
 ---
 
-## 🗺️ ロードマップ / タスク
+## ロードマップ / タスク
 
 | Step | 項目 | 内容 | 状況 |
 | :--- | :--- | :--- | :--- |
-| **Step 1** | **調査・要件定義** | 仕様調査および実現可能性の検証 | 🔄 進行中 |
-| **Step 2** | **設計・方針決定** | アーキテクチャや連携方法の決定 | 📋 未着手 |
-| **Step 3** | **実装・スクリプト化** | 実行コード・自動化ツールの作成 | 📋 未着手 |
+| **Step 1** | **調査・要件定義** | 仕様調査および実現可能性の検証 | 進行中 |
+| **Step 2** | **設計・方針決定** | アーキテクチャや連携方法の決定 | 未着手 |
+| **Step 3** | **実装・スクリプト化** | 実行コード・自動化ツールの作成 | 未着手 |
 
 ---
 
-## 📝 決定事項 (ADR一覧)
+## 決定事項 (ADR一覧)
 
 - なし
 
 ---
 
-## 📌 直近のネクストアクション
+## 直近のネクストアクション
 
 - [ ] 
 EOF
-  echo "  ✅ Created $TARGET_DIR/discussion.md"
+  echo "  Created $TARGET_DIR/discussion.md"
 fi
 
 # Gitkeep files
@@ -111,4 +111,4 @@ touch "$TARGET_DIR/note/.gitkeep"
 touch "$TARGET_DIR/adr/.gitkeep"
 touch "$TARGET_DIR/scripts/.gitkeep"
 
-echo "🎉 Workspace '$WORKSPACE_NAME' created successfully!"
+echo "Workspace '$WORKSPACE_NAME' created successfully in $TARGET_DIR"

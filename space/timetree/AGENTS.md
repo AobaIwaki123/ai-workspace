@@ -7,7 +7,7 @@
 ## 📁 ディレクトリ構成と役割
 
 ```
-timetree/
+space/timetree/
 ├── AGENTS.md             # 本規約ファイル（スコープ・開発ルール）
 ├── discussion.md         # 議論の方向性、要件定義、進捗管理、アクションアイテム
 ├── note/                 # 調査・検証・技術メモ（01_xxx.md 形式で蓄積）
