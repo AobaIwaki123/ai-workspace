@@ -18,6 +18,7 @@ AIと協業するためのワークスペース集
 - **`.shared/`**: Worktree 間で共有するファイル（環境変数 `.env`、キャッシュ等）の配置領域（`.gitignore` 対象）
 - **`space/` (個別ワークスペース集)**:
   - [`space/body-positivity/`](space/body-positivity/): ボディポジティブ運動の悪用と変質に関する調査
+  - [`space/identity-protection/`](space/identity-protection/): 運転免許証流出に伴う信用情報機関への本人申告およびタイムズカー事案調査
   - [`space/timetree/`](space/timetree/): TimeTree 公開カレンダー連携・API 調査・専用リポジトリ連携
   - [`space/isucon/`](space/isucon/): ISUCON 演習・サンドボックス環境・GitOps 基盤
   - [`space/wsl-server/`](space/wsl-server/): Windows 上での WSL2 サーバー構築・自動起動・統合手順書策定
