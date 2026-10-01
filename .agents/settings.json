@@ -78,8 +78,6 @@
       "command(k8sctl( .*)?)",
       "command(helm( .*)?)",
       "command(mc( .*)?)",
-      "command(bash( .*)?)",
-      "command(zsh( .*)?)",
       "command((bash )?(\\./)?.*scripts/.*)",
       "command((/usr/lib/wsl/lib/)?nvidia-smi( .*)?)",
       "command(.*llama-bench( .*)?)",
