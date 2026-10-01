@@ -35,7 +35,9 @@ if token.startswith("Bot "):
 # Create backup
 bak_path = f"{config_path}.bak"
 shutil.copyfile(config_path, bak_path)
-print(f"[INFO] Backup created at: {bak_path}")
+import os
+os.chmod(bak_path, 0o600)
+print(f"[INFO] Backup created at: {bak_path} (mode: 600)")
 
 # Update token
 env["DISCORD_BOT_TOKEN"] = f"Bot {token}"
