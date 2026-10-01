@@ -1,0 +1,193 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-10-01T21:56:00+09:00",
+  "description": "アイドルの公式マスタ情報（グループ名、識別ID、TimeTreeカレンダーID、公式リンク）。日程・公演情報は陳腐化するためマスタ情報のみを永続化し、最新スケジュールは都度API等から取得する運用方針。",
+  "groups": [
+    {
+      "id": "ilife",
+      "name": "iLiFE!",
+      "reading": "アイライフ",
+      "agency": "imaginate (HEROINES)",
+      "timetree": {
+        "hasPublicCalendar": true,
+        "calendarId": "46438",
+        "aliasCode": "ilife_official",
+        "url": "https://timetr.ee/p/ilife_official"
+      },
+      "officialLinks": {
+        "website": "https://heroines.jp",
+        "twitter": "https://x.com/iLiFE_official",
+        "instagram": "https://www.instagram.com/ilife.idol"
+      },
+      "ticketPlatforms": [
+        "https://t-dv.com"
+      ]
+    },
+    {
+      "id": "appare",
+      "name": "Appare!",
+      "reading": "アッパレ",
+      "agency": "Appare! Project",
+      "timetree": {
+        "hasPublicCalendar": true,
+        "calendarId": null,
+        "aliasCode": "appare_official",
+        "url": "https://timetr.ee/p/appare_official"
+      },
+      "officialLinks": {
+        "website": "https://appare-official.jp",
+        "twitter": "https://x.com/official_appare"
+      },
+      "ticketPlatforms": [
+        "https://eplus.jp",
+        "https://t-dv.com"
+      ]
+    },
+    {
+      "id": "plus_newidol",
+      "name": "夜光性アミューズ / HEROINES系列",
+      "reading": "ヨルアミ / ヒロインズ",
+      "agency": "imaginate (HEROINES)",
+      "timetree": {
+        "hasPublicCalendar": true,
+        "calendarId": null,
+        "aliasCode": "plus_newidol",
+        "url": "https://timetr.ee/p/plus_newidol"
+      },
+      "officialLinks": {
+        "website": "https://heroines.jp"
+      },
+      "ticketPlatforms": [
+        "https://t-dv.com"
+      ]
+    },
+    {
+      "id": "fruits_zipper",
+      "name": "FRUITS ZIPPER",
+      "reading": "フルーツジッパー",
+      "agency": "ASOBISYSTEM (KAWAII LAB.)",
+      "timetree": {
+        "hasPublicCalendar": false,
+        "notes": "公式サイトおよびFCスケジュールにて管理"
+      },
+      "officialLinks": {
+        "website": "https://fruitszipper.asobisystem.com",
+        "twitter": "https://x.com/fruits_zipper"
+      },
+      "ticketPlatforms": [
+        "https://t.pia.jp",
+        "https://l-tike.com",
+        "https://eplus.jp"
+      ]
+    },
+    {
+      "id": "cutie_street",
+      "name": "CUTIE STREET",
+      "reading": "キューティーストリート",
+      "agency": "ASOBISYSTEM (KAWAII LAB.)",
+      "timetree": {
+        "hasPublicCalendar": false,
+        "notes": "公式サイトおよび公式Xにて告知"
+      },
+      "officialLinks": {
+        "website": "https://cutiestreet.asobisystem.com",
+        "twitter": "https://x.com/cutie_street_"
+      },
+      "ticketPlatforms": [
+        "https://t.pia.jp",
+        "https://eplus.jp"
+      ]
+    },
+    {
+      "id": "takane_no_nadeshiko",
+      "name": "高嶺のなでしこ",
+      "reading": "タカネノナデシコ",
+      "agency": "TWIN PLANET",
+      "timetree": {
+        "hasPublicCalendar": false,
+        "notes": "公式サイトスケジュールにて管理"
+      },
+      "officialLinks": {
+        "website": "https://takanenonadeshiko.jp",
+        "twitter": "https://x.com/takanenofficial"
+      },
+      "ticketPlatforms": [
+        "https://eplus.jp",
+        "https://l-tike.com"
+      ]
+    },
+    {
+      "id": "tokisen",
+      "name": "超ときめき♡宣伝部",
+      "reading": "チョウトキメキセンデンブ",
+      "agency": "STARDUST PROMOTION",
+      "timetree": {
+        "hasPublicCalendar": false,
+        "notes": "スターダスト公式サイトおよびFCアプリにて管理"
+      },
+      "officialLinks": {
+        "website": "https://toki-sen.com",
+        "twitter": "https://x.com/sendenkan_cho"
+      },
+      "ticketPlatforms": [
+        "https://l-tike.com",
+        "https://eplus.jp",
+        "https://t.pia.jp"
+      ]
+    },
+    {
+      "id": "jams_collection",
+      "name": "Jams Collection",
+      "reading": "ジャムズコレクション",
+      "agency": "RIZE Production",
+      "timetree": {
+        "hasPublicCalendar": false,
+        "notes": "公式サイト・公式X・TicketDiveにて告知"
+      },
+      "officialLinks": {
+        "website": "https://jamscollection.jp",
+        "twitter": "https://x.com/JamsCollection"
+      },
+      "ticketPlatforms": [
+        "https://t-dv.com",
+        "https://eplus.jp"
+      ]
+    },
+    {
+      "id": "nogizaka46",
+      "name": "乃木坂46",
+      "reading": "ノギザカフォーティーシックス",
+      "agency": "乃木坂46合同会社 (Sony Music)",
+      "timetree": {
+        "hasPublicCalendar": false,
+        "notes": "乃木坂46公式サイトスケジュールページにて管理"
+      },
+      "officialLinks": {
+        "website": "https://www.nogizaka46.com",
+        "twitter": "https://x.com/nogizaka46"
+      },
+      "ticketPlatforms": [
+        "https://ticket.rakuten.co.jp",
+        "https://stagecrowd.live"
+      ]
+    },
+    {
+      "id": "equal_love",
+      "name": "=LOVE",
+      "reading": "イコールラブ",
+      "agency": "代々木アニメーション学院 (Sony Music)",
+      "timetree": {
+        "hasPublicCalendar": false,
+        "notes": "=LOVE 公式サイトスケジュールにて管理"
+      },
+      "officialLinks": {
+        "website": "https://equal-love.jp",
+        "twitter": "https://x.com/Equal_LOVE_12"
+      },
+      "ticketPlatforms": [
+        "https://t.pia.jp",
+        "https://eplus.jp"
+      ]
+    }
+  ]
+}
