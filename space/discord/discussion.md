@@ -18,7 +18,7 @@
 | **Step 1** | **認証確認 & 疎通テスト** | Bot Token の検証、所属サーバー・チャンネル一覧取得、テストメッセージ送信 | 完了 |
 | **Step 2** | **MCP サーバー構成** | `~/.gemini/config/mcp_config.json` への `discord-mcp` 登録 | 完了 |
 | **Step 3** | **CLI スクリプト整備** | `space/discord/scripts/send-message.sh` の実装と検証 | 完了 |
-| **Step 4** | **双方向 Bot 開発（必要時）** | イベント駆動（メンション応答等）のBot実装検討 | 未着手（要望に応じて実施） |
+| **Step 4** | **双方向 Bot 開発（Discord メッセージ起点で agy 起動）** | メンション・スラッシュコマンドを契機に `agy` を呼び出す Bot 実装 | 進行中 ([note/03](./note/03_discord_bot_agy_runner.md), [note/04](./note/04_slash_commands_vs_mentions_and_repo_context.md)) |
 | **Step 5** | **Discord MCP スキル整備** | `discord-mcp` 利用知見、認証落とし穴、マトリクスを `.agents/skills/discord-mcp` に集約 | 完了 |
 
 ---
