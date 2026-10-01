@@ -28,6 +28,8 @@
 
 - [01_credit_bureau_fraud_prevention_guide.md](./note/01_credit_bureau_fraud_prevention_guide.md): 信用情報機関への本人申告登録手順と初動対応ガイド
 - [02_times_car_license_leak_investigation.md](./note/02_times_car_license_leak_investigation.md): タイムズカー（パーク24）免許証画像流出事案の調査と被害対策
+- [03_credit_bureau_precautions_and_comparison.md](./note/03_credit_bureau_precautions_and_comparison.md): 個人信用情報機関（本人申告）の共通注意点と機関別差異の比較
+- [04_cic_and_ksc_declaration_procedures.md](./note/04_cic_and_ksc_declaration_procedures.md): CICおよびKSC（全銀協）インターネット本人申告の完全実行手順書
 
 ---
 
