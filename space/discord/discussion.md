@@ -20,6 +20,14 @@
 | **Step 3** | **CLI スクリプト整備** | `space/discord/scripts/send-message.sh` の実装と検証 | 完了 |
 | **Step 4** | **双方向 Bot 開発（必要時）** | イベント駆動（メンション応答等）のBot実装検討 | 未着手（要望に応じて実施） |
 | **Step 5** | **Discord MCP スキル整備** | `discord-mcp` 利用知見、認証落とし穴、マトリクスを `.agents/skills/discord-mcp` に集約 | 完了 |
+| **Step 6** | **MCP サーバー安全性監査** | パッケージ、静的コード、ファイル操作、権限、クレデンシャル監査を実施し `note/02` に整理 | 完了 |
+
+---
+
+## 調査・学習ノート一覧 (note/)
+
+- [**01. Discord API および MCP セットアップ・疎通検証ノート**](./note/01_discord_api_and_mcp_setup.md): REST API 疎通、参加サーバー・チャンネル取得、MCP構成
+- [**02. Discord MCP サーバー総合セキュリティ監査・安全性評価ノート**](./note/02_discord_mcp_security_audit.md): サプライチェーン、静的コード、ファイル操作、権限設計、ローカル保護
 
 ---
 
@@ -37,5 +45,7 @@
 - [x] CLIメッセージ送信スクリプト `send-message.sh` の作成と動作確認
 - [x] MCPサーバー設定の構成
 - [x] Discord MCP スキル（`.agents/skills/discord-mcp`）の作成と検証
+- [x] Discord MCP サーバーのセキュリティ・安全性チェックとノート整理 (`note/02`)
 - [ ] Antigravity 再起動・新規セッションでの MCP ツール認識確認
+
 
