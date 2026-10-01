@@ -31,6 +31,8 @@
 - [**04. リポジトリ知識（規約・スキル・ナレッジ）の自律継承メカニズム**](./note/04_repository_context_injection.md): cwd 設定による AGENTS.md, skills, space の自動認識
 - [**05. Discord Bot Runner の実装設計とメッセージ自動分割 (Chunking)**](./note/05_discord_bot_runner_implementation.md): 常駐 Bot 実装、2000文字チャンキング、自動リトライ
 - [**06. Message Content Intent の 2 段階有効化ルールと Token ライフサイクル**](./note/06_message_content_intent_two_phase_activation.md): Portal 許可 + クライアント宣言、Token 再生成不要の仕様
+- [**07. 複数メッセージ受信時の並行実行挙動・競合リスクと制御設計**](./note/07_concurrency_and_multiple_messages.md): プロセス並行性、Out-of-Order完了、作業ツリー競合、直列キューイングとWorktree分離案
+- [**08. セッション記憶の持続性メカニズム**](./note/08_session_memory_and_context_persistence.md): 独立プロセスで直近記憶が維持される理由、conversation_summaries.db、作業ツリーの外部記憶機能
 
 ---
 
