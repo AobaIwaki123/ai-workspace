@@ -85,9 +85,18 @@ function executeAgyOnce(prompt, conversationId = null, effort = 'low') {
       args.push('--conversation', conversationId);
     }
 
+    const userHome = process.env.HOME || '';
+    const extraPaths = [
+      `${userHome}/.local/bin`,
+      '/usr/local/bin',
+      '/opt/homebrew/bin',
+      '/usr/bin',
+      '/bin'
+    ].filter(Boolean).join(':');
+
     const env = {
       ...process.env,
-      PATH: `${process.env.PATH}:/Users/aobaiwaki/.local/bin:/opt/homebrew/bin:/usr/local/bin`
+      PATH: `${extraPaths}:${process.env.PATH || ''}`
     };
 
     console.log(`[agy] Executing in ${WORKSPACE_ROOT}: agy (effort: ${effort})`);
