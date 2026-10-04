@@ -38,3 +38,35 @@ space/isucon/
 4. **再現性・スクリプト化 (`scripts/`, `templates/`)**
    - 当日素早くセットアップできるよう、コマンドや設定は極力スクリプト化・テンプレート化します。
    - 汎用的な自動化ツールは `.agents/skills/` への切り出しも検討します。
+
+---
+
+## アプリケーションコードのビルド・リロード手順
+
+コード変更を加えた際は、以下の手順でビルドおよびサービス再起動（リロード）を行って反映します。
+
+### 手元（ローカルPC）からの反映方法（推奨）
+
+手元でコードを編集後、リポジトリルートで `make deploy` を実行します:
+```bash
+make deploy
+```
+- 手元の `webapp/go/`, `webapp/sql/`, `env.sh` をサーバーへ rsync 転送
+- サーバー上で Go アプリをビルド（`go build -o isuride`）
+- systemd サービスを再起動（`sudo systemctl restart isuride-go`）
+- 正常稼働（`active`）を確認
+
+### サーバー上で直接作業する場合の反映方法
+
+```bash
+cd /home/isucon/webapp/go
+export PATH=/home/isucon/local/golang/bin:$PATH
+go build -o isuride
+sudo systemctl restart isuride-go
+sudo systemctl is-active isuride-go
+```
+
+### ログの監視・確認
+
+- 手元から: `make logs`
+- サーバー上で直接: `sudo journalctl -u isuride-go -f -n 50`
