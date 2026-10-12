@@ -31,7 +31,7 @@
 | **Step 1** | **チーム体制＆戦略決定** | 3人の役割分担（インフラ・計測/アプリA/アプリB）、採用言語の確定 | ✅ 完了 ([ADR-0001](adr/0001-team-structure-and-languages.md)) |
 | **Step 2** | **測定手法の整理 & サンドボックス演習** | alp, pt-query-digest, pprof を使った測定サイクルのローカル & k8s実践 | ✅ 完了 ([local](local-sandbox/), [k8s](k8s/), [note/11](note/11_k8s_sandbox_guide.md)) |
 | **Step 3** | **秘伝のタレ（スクリプト・設定）の整備** | デプロイ自動化、ログローテート、Go/TSビルドスクリプト、Nginx/MySQL設定 | 🔄 進行中 ([scripts](scripts/), [templates](templates/)) |
-| **Step 4** | **クラウド過去問演習（1〜2問）** | AWS (ISUCON11予選) を構築し、本番同様のタイムトライアル実施 | 🔄 進行中 (初期スコア: 1,278点) ([note/07](note/07_cloud_practice_env.md)) |
+| **Step 4** | **クラウド過去問演習（1〜2問）** | AWS (ISUCON11予選) を構築し、本番同様のタイムトライアル実施 | 🔄 進行中 (ISUCON14 Proxmox移行、初回スコア914・pass=true) ([note/07](note/07_cloud_practice_env.md)) |
 | **Step 5** | **当日リハーサル＆チェックリスト確認** | 当日タイムライン、デプロイ競合防止、再起動試験の確認 | 📋 準備済み ([note/05_checklist.md](note/05_checklist.md)) |
 
 ---
@@ -50,6 +50,22 @@
 - [x] 1Password CLI (`op`) 連携による安全な AWS 操作環境の確立 (ディスク平文キー保存ゼロ)
 - [x] AWS 上への ISUCON11 予選環境の起動と初回ベースライン計測完了 (1,278点 pass)
 - [x] 演習終了時のインスタンス破棄完了 (EC2課金停止・ゼロコスト待機中)
-- [ ] 次回ガッツリ演習時: インスタンスワンライナー再起動
+- [x] 演習用EC2の停止・起動スクリプトと公開IP変更時のSSH Config更新コマンドを整備
 - [ ] ISUCON11 予選サーバーの初動セットアップ (Git管理化、alp / スロークエリ計測ログ設定の投入)
 - [ ] ボトルネック特定 (alp / pt-query-digest) と第1弾チューニング (DBインデックス等)
+
+## 2026-10-11 Proxmox移行の実績
+
+- Terraformで `pve201` に `isucon14` VM（VMID 236、2 vCPU、4GB、32GB、`192.168.11.236`）を作成・起動。
+- AWSから公式ISUCON14のGo実装、決済モック、静的ファイル、SQL初期データ、環境変数を移行。
+- MySQL 8.0、Nginx、Go 1.22、`alp`、`pt-query-digest` 等の計測基盤を導入し、systemdサービスを起動。
+- 事前チェックは `pass=true`、フルベンチは `pass=true / スコア914`。評価APIの502が97件あるため、次回はその原因分析から再開する。
+- 移行元AWS EC2（`i-0ef519f88f2d7041e`）は停止済み。終了はせず、比較用に復旧可能な状態で保持する。
+
+## 2026-10-12 現在地
+
+- Proxmox VM（`isucon14` / VMID 236）をTailscale SSH経由で運用中。詳細は [note/12](note/12_proxmox_current_state.md) を参照。
+- `pt-query-digest`が出力されない原因を、MySQL設定未反映とslow logパスの固定参照と特定。
+- `slow_query_log=1`、`long_query_time=0`、`/var/log/mysql/mysql-slow.log`をVMへ反映し、実ベンチで`pt-query-digest.txt`生成を確認。
+- ログ収集修正は [PR #25](https://github.com/sharehouse-sanhaimu/isucon14-retry/pull/25) でレビュー待ち。
+- 最新ベンチは`pass=true / スコア979`だが、評価APIの502（CODE=5）が89件あり、次の調査対象は評価処理の失敗原因。

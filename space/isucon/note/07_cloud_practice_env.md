@@ -243,6 +243,20 @@ aws ec2 delete-key-pair --region ap-northeast-1 --key-name isucon-key
 rm -f ~/.ssh/isucon-key.pem
 ```
 
+### 手順 6: 演習用EC2の停止・起動
+
+再作成せずに演習を再開・停止する場合は、リポジトリのスクリプトを使用します。対象は `Name=isucon14-practice` のEC2インスタンスです。
+
+```bash
+# 停止（EBSのデータを保持したままEC2を停止）
+./space/isucon/scripts/stop-isucon14.sh
+
+# 起動（AWSのステータスチェックと公開IP取得まで待機）
+./space/isucon/scripts/start-isucon14.sh
+```
+
+起動スクリプトは、`isucon14` と `isucon14-ubuntu` の `HostName` を更新する1行コマンド、および `/etc/hosts` の `isuride.xiv.isucon.net` を更新する1行コマンドを最後に表示します。公開IPは停止・起動のたびに変わるため、チームメンバーは各自の設定にコマンドを適用します。スクリプトはSSH Configや `/etc/hosts` を直接変更しません。`/etc/hosts` のコマンドには `sudo` を付けていません。
+
 ---
 
 ## 4. GCP 環境の構築・操作手順 (GCE + cloud-init)
@@ -301,6 +315,32 @@ gcloud compute instances delete isucon11q \
     --zone=asia-northeast1-b \
     --delete-disks=all --quiet
 ```
+
+---
+
+## 5. ISUCON14演習環境のProxmox移行
+
+AWSの課金を抑えながら公式ISUCON14のGo版を練習するため、Proxmox上の単一VMへ移行した。Terraformの環境定義はTerraform管理VMの `/home/aoba/Proxmox-Terraform/envs/isucon14` に置き、VMは `pve201` のVMID `236` とした。
+
+| 項目 | 値 |
+| :--- | :--- |
+| VM名 | `isucon14` |
+| IPv4 | `192.168.11.236` |
+| 構成 | 2 vCPU / 4GB RAM / 32GB `local-lvm` |
+| OS | Ubuntu 24.04 LTS |
+| サービス | Nginx / MySQL 8.0 / `isuride-go` / `isuride-payment_mock` / `isuride-matcher` |
+| ベンチ対象 | `http://127.0.0.1` または `http://192.168.11.236` |
+
+AWSからは、全言語実装ではなく、Go版、決済モック、静的ファイル、SQL初期データ、`env.sh`、ベンチマークバイナリだけを転送した。DBはライブダンプではなく、公式の `0-init.sql`、`1-schema.sql`、`2-master-data.sql`、`3-initial-data.sql.gz` から再構築している。マッチャーは自宅環境向けに `http://127.0.0.1/api/internal/matching` を呼ぶ構成へ変更した。
+
+確認済み:
+
+- `http://127.0.0.1/` がHTTP 200
+- `/api/internal/matching` がHTTP 204
+- ベンチ事前チェックが `pass=true`
+- フルベンチが `pass=true / スコア914`
+
+フルベンチでは評価APIの502が97件発生した。アプリログ上は決済モックへの通信自体は成功しているため、次回は `unexpected number of payments` と負荷時の評価処理を切り分ける。
 
 ---
 
