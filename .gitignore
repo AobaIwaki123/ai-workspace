@@ -25,3 +25,7 @@ secrets/
 .shared/
 shared/
 .gemini
+
+# Standalone Git repositories in space/
+space/lumi-spec/
+space/lumitlink/
