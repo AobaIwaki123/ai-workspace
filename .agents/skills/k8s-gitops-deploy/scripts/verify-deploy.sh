@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# verify-deploy.sh - Verifies CI/CD workflow execution, manifest tag update, and deployment
+# verify-deploy.sh - Verifies CI/CD workflow, manifest tag update, k8s rollout, and Cloudflare Ingress connectivity
 set -euo pipefail
 
 usage() {
@@ -9,17 +9,23 @@ Usage: $0 [options] <repo-dir>
 Options:
   -m, --manifest <path>    Path to k8s manifest file (default: k8s/app.yaml)
   -w, --watch              Watch the running GitHub Action workflow until completion
+  --check-k8s              Verify Kubernetes deployment rollout (requires kubectl access)
+  --check-ingress          Verify Cloudflare Ingress HTTPS connectivity via curl
+  --host <hostname>        Override host domain for ingress verification
   -t, --timeout <seconds>  Max timeout in seconds (default: 600)
   -h, --help               Show this help message
 
 Examples:
   $0 /path/to/repo
-  $0 -w /path/to/repo
+  $0 -w --check-k8s --check-ingress /path/to/repo
 EOF
 }
 
 MANIFEST_PATH="k8s/app.yaml"
 WATCH=false
+CHECK_K8S=false
+CHECK_INGRESS=false
+CUSTOM_HOST=""
 TIMEOUT_SEC=600
 
 while [[ $# -gt 0 ]]; do
@@ -31,6 +37,18 @@ while [[ $# -gt 0 ]]; do
     -w|--watch)
       WATCH=true
       shift
+      ;;
+    --check-k8s)
+      CHECK_K8S=true
+      shift
+      ;;
+    --check-ingress)
+      CHECK_INGRESS=true
+      shift
+      ;;
+    --host)
+      CUSTOM_HOST="$2"
+      shift 2
       ;;
     -t|--timeout)
       TIMEOUT_SEC="$2"
@@ -102,16 +120,52 @@ fi
 IMAGE_LINE=$(echo "$LATEST_REMOTE_MANIFEST" | grep -E "image:\s*ghcr\.io/.*" | head -n1 || echo "")
 echo "Current image in manifest: $IMAGE_LINE"
 
+MANIFEST_OK=false
 if echo "$IMAGE_LINE" | grep -q ":$SHORT_SHA"; then
   echo "SUCCESS: Manifest successfully updated with target commit SHA ($SHORT_SHA)."
-  exit 0
+  MANIFEST_OK=true
 elif [[ "$CONCLUSION" == "success" ]]; then
   echo "Notice: Workflow succeeded. Manifest may be committed in a follow-up commit or already matching."
-  exit 0
+  MANIFEST_OK=true
 elif [[ "$STATUS" == "in_progress" || "$STATUS" == "queued" ]]; then
   echo "Notice: Workflow is still $STATUS. Please wait for completion."
-  exit 0
 else
   echo "Warning: Image tag does not match target SHA ($SHORT_SHA). Check workflow logs."
+fi
+
+# Detect App & Host info from manifest
+APP_NAME=$(echo "$LATEST_REMOTE_MANIFEST" | awk '{for(i=1;i<=NF;i++) if($i=="name:") {print $(i+1); exit}}' || echo "")
+HOST="$CUSTOM_HOST"
+if [ -z "$HOST" ]; then
+  HOST=$(echo "$LATEST_REMOTE_MANIFEST" | awk '{for(i=1;i<=NF;i++) if($i=="host:") {print $(i+1); exit}}' || echo "")
+fi
+
+# Optional K8s Rollout Check
+if [[ "$CHECK_K8S" == "true" && -n "$APP_NAME" ]] && command -v kubectl &>/dev/null; then
+  echo ""
+  echo "==> Verifying Kubernetes rollout for deployment '$APP_NAME'..."
+  if kubectl rollout status "deployment/$APP_NAME" -n "$APP_NAME" --timeout="${TIMEOUT_SEC}s"; then
+    echo "SUCCESS: Kubernetes deployment rolled out successfully."
+  else
+    echo "Warning: Kubernetes rollout timed out or encountered issues."
+  fi
+fi
+
+# Optional Cloudflare Ingress Connectivity Check
+if [[ "$CHECK_INGRESS" == "true" && -n "$HOST" ]]; then
+  echo ""
+  echo "==> Verifying Cloudflare Ingress external connectivity: https://$HOST ..."
+  HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 --max-time 15 "https://$HOST" || echo "000")
+  echo "HTTP Response Status: $HTTP_STATUS"
+  if [[ "$HTTP_STATUS" =~ ^(200|301|302|304|307|308)$ ]]; then
+    echo "SUCCESS: External endpoint https://$HOST is reachable and healthy."
+  else
+    echo "Warning: Unexpected status code $HTTP_STATUS from https://$HOST. (May take a moment for Cloudflare/DNS/ArgoCD to sync)"
+  fi
+fi
+
+if [[ "$MANIFEST_OK" == "true" ]]; then
+  exit 0
+else
   exit 1
 fi

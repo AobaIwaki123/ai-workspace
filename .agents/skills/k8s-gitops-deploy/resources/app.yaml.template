@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: __APP_NAME__
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: __APP_NAME__
+  namespace: __APP_NAME__
+  labels:
+    app: __APP_NAME__
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: __APP_NAME__
+  template:
+    metadata:
+      labels:
+        app: __APP_NAME__
+    spec:
+      containers:
+        - name: __APP_NAME__
+          image: ghcr.io/__IMAGE_OWNER__/__APP_NAME__:__INITIAL_TAG__
+          ports:
+            - containerPort: __PORT__
+          env:
+            - name: TZ
+              value: "Asia/Tokyo"
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: __HEALTH_PATH__
+              port: __PORT__
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: __HEALTH_PATH__
+              port: __PORT__
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: __APP_NAME__
+  namespace: __APP_NAME__
+spec:
+  selector:
+    app: __APP_NAME__
+  ports:
+    - port: 80
+      targetPort: __PORT__
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: __APP_NAME__
+  namespace: __APP_NAME__
+  annotations:
+    cloudflare-tunnel-ingress-controller.strrl.dev/backend-protocol: "http"
+    cloudflare-tunnel-ingress-controller.strrl.dev/tunnel-name: "cf-tunnel-ingress-controller"
+spec:
+  ingressClassName: cloudflare-tunnel
+  rules:
+    - host: __HOST__
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: __APP_NAME__
+                port:
+                  number: 80
