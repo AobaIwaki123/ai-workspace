@@ -1,0 +1,19 @@
+# Binaries
+/zeitgeist
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go cache / Vendor
+vendor/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
