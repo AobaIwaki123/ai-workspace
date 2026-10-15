@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#120e21" />
+    <title>TSUYOKAWA Theme Renderer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand"><span class="spark">✦</span> TSUYOKAWA LAB</div>
+        <span class="badge">CODE-GENERATED</span>
+      </header>
+
+      <section class="intro">
+        <p class="eyebrow">GAME DEV × TSUYOKAWA</p>
+        <h1>かわいさに、<br /><em>芯を。</em></h1>
+        <p>ゲームジャンルに依存しない、ツヨカワ表現の小さな実験場。</p>
+      </section>
+
+      <section class="lab-grid" aria-label="テーマレンダラー">
+        <div class="visual-card">
+          <div class="visual-meta">
+            <span id="state-name">IDLE / ふわっと始まる</span>
+            <span id="state-value">THEME STATE</span>
+          </div>
+          <svg id="theme-svg" viewBox="0 0 360 360" role="img" aria-labelledby="visual-title visual-description">
+            <title id="visual-title">コード生成されたツヨカワのシンボル</title>
+            <desc id="visual-description">丸みのある形と力強いアクセントが状態に応じて変化します。</desc>
+            <defs>
+              <radialGradient id="halo-gradient" cx="50%" cy="45%" r="60%">
+                <stop id="halo-stop-a" offset="0%" stop-color="#ff8cc8" stop-opacity="0.42" />
+                <stop id="halo-stop-b" offset="100%" stop-color="#9282ff" stop-opacity="0" />
+              </radialGradient>
+              <linearGradient id="body-gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop id="body-stop-a" offset="0%" stop-color="#ff9dce" />
+                <stop id="body-stop-b" offset="100%" stop-color="#9b8cff" />
+              </linearGradient>
+            </defs>
+            <g id="generated-art"></g>
+          </svg>
+        </div>
+
+        <div class="control-card">
+          <p class="eyebrow">STATE MACHINE</p>
+          <div class="state-buttons" role="group" aria-label="テーマ状態">
+            <button class="state-button active" data-state="idle" type="button">ふわっと</button>
+            <button class="state-button" data-state="charge" type="button">ためる</button>
+            <button class="state-button" data-state="power" type="button">つよく</button>
+            <button class="state-button" data-state="recover" type="button">立て直す</button>
+          </div>
+
+          <label class="range-row" for="cute-range">
+            <span><b>かわいさ</b><output id="cute-output">72</output></span>
+            <input id="cute-range" type="range" min="0" max="100" value="72" />
+          </label>
+          <label class="range-row" for="strong-range">
+            <span><b>強さ</b><output id="strong-output">38</output></span>
+            <input id="strong-range" type="range" min="0" max="100" value="38" />
+          </label>
+
+          <button id="random-button" class="random-button" type="button">ランダムに変化</button>
+          <p class="hint">画像なしで、形・色・動きだけを調整します。</p>
+        </div>
+      </section>
+
+      <footer class="footer-note">Prototype / no official group assets</footer>
+    </main>
+    <script src="./theme.js"></script>
+  </body>
+</html>

@@ -1,0 +1,76 @@
+:root {
+  color-scheme: dark;
+  --bg: #120e21;
+  --panel: #1e1732;
+  --panel-strong: #2b2145;
+  --ink: #fff7fd;
+  --muted: #bdb1d2;
+  --pink: #ff8cc8;
+  --lilac: #9b8cff;
+  --cyan: #77e4e8;
+  --yellow: #ffe18b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 75% 12%, rgba(255, 140, 200, 0.16), transparent 22rem),
+    radial-gradient(circle at 10% 80%, rgba(119, 228, 232, 0.1), transparent 20rem),
+    var(--bg);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+}
+
+button, input { font: inherit; }
+button { cursor: pointer; }
+
+.shell { width: min(100% - 32px, 1024px); margin: 0 auto; padding: 24px 0 48px; }
+.topbar { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.75rem; font-weight: 900; letter-spacing: 0.16em; }
+.spark { color: var(--pink); font-size: 1.25rem; }
+.badge { margin-left: auto; color: var(--cyan); font-size: 0.62rem; }
+
+.intro { max-width: 660px; padding: 12vh 0 42px; }
+.eyebrow { margin: 0 0 14px; color: var(--cyan); font-size: 0.68rem; font-weight: 900; letter-spacing: 0.18em; }
+h1 { margin: 0; font-size: clamp(3.7rem, 9vw, 7rem); letter-spacing: -0.09em; line-height: 0.94; }
+h1 em { color: var(--pink); font-style: normal; text-shadow: 0 0 28px rgba(255, 140, 200, 0.32); }
+.intro > p:last-child { margin: 24px 0 0; color: var(--muted); line-height: 1.8; }
+
+.lab-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr); gap: 18px; align-items: stretch; }
+.visual-card, .control-card { border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; background: rgba(30, 23, 50, 0.84); box-shadow: 0 22px 70px rgba(0,0,0,0.22); }
+.visual-card { min-height: 500px; padding: 22px; overflow: hidden; }
+.visual-meta { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 0.65rem; font-weight: 800; letter-spacing: 0.12em; }
+.visual-meta span:last-child { color: var(--pink); }
+#theme-svg { display: block; width: min(100%, 500px); height: auto; margin: 16px auto 0; }
+#generated-art { transform-origin: 180px 190px; }
+#generated-art.power { animation: power-pulse 1.7s ease-in-out infinite; }
+#generated-art.charge { animation: charge-float 2.4s ease-in-out infinite; }
+#generated-art.recover { animation: recover-breathe 2.8s ease-in-out infinite; }
+
+.control-card { padding: 28px; }
+.state-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 30px; }
+.state-button, .random-button { border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; background: var(--panel-strong); color: var(--ink); padding: 12px 10px; transition: 140ms ease; }
+.state-button:hover, .state-button.active { border-color: var(--pink); background: rgba(255, 140, 200, 0.16); color: var(--pink); transform: translateY(-1px); }
+.range-row { display: block; margin: 22px 0; color: var(--muted); font-size: 0.82rem; }
+.range-row span { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.range-row b { color: var(--ink); }
+output { color: var(--pink); font-variant-numeric: tabular-nums; }
+input[type="range"] { width: 100%; accent-color: var(--pink); }
+.random-button { width: 100%; margin-top: 10px; color: var(--cyan); }
+.random-button:hover { border-color: var(--cyan); background: rgba(119, 228, 232, 0.12); }
+.hint, .footer-note { color: var(--muted); font-size: 0.72rem; line-height: 1.6; }
+.hint { margin: 20px 0 0; }
+.footer-note { margin-top: 20px; text-align: center; }
+
+@keyframes power-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+@keyframes charge-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes recover-breathe { 0%, 100% { opacity: 0.82; } 50% { opacity: 1; } }
+
+@media (max-width: 760px) {
+  .intro { padding-top: 8vh; }
+  .lab-grid { grid-template-columns: 1fr; }
+  .visual-card { min-height: auto; }
+}

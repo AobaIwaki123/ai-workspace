@@ -1,0 +1,31 @@
+timeout_seconds: 15
+concurrency: 5
+default_limit: 5
+
+sources:
+  - id: "nhk_news"
+    name: "NHKニュース 主要"
+    description: "国内外の主要ニュース速報。社会的な重大トピックの把握用。"
+    category: "general"
+    driver: "rss"
+    endpoint: "https://www.nhk.or.jp/rss/news/cat0.xml"
+    limit: 5
+    enabled: true
+
+  - id: "natalie_eiga"
+    name: "映画ナタリー 最新ニュース"
+    description: "映画業界の最新ニュース、新作公開情報、キャストインタビューのまとめ。"
+    category: "movie"
+    driver: "rss"
+    endpoint: "https://natalie.mu/eiga/feed/news"
+    limit: 5
+    enabled: true
+
+  - id: "hatena_it"
+    name: "はてなブックマーク テクノロジー"
+    description: "テクノロジー・IT・エンジニアリング界隈の最新ホットエントリ。"
+    category: "tech"
+    driver: "rss"
+    endpoint: "https://b.hatena.ne.jp/hotentry/it.rss"
+    limit: 5
+    enabled: true
