@@ -1,4 +1,4 @@
-module github.com/aooba/zeitgeist
+module github.com/AobaIwaki123/zeitgeist
 
 go 1.26.4
 

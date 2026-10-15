@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aooba/zeitgeist/pkg/driver"
-	"github.com/aooba/zeitgeist/pkg/model"
+	"github.com/AobaIwaki123/zeitgeist/pkg/driver"
+	"github.com/AobaIwaki123/zeitgeist/pkg/model"
 )
 
 // Engine orchestrates concurrent fetching across multiple sources.

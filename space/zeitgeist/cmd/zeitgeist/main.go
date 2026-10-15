@@ -9,10 +9,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/aooba/zeitgeist/pkg/config"
-	"github.com/aooba/zeitgeist/pkg/driver"
-	"github.com/aooba/zeitgeist/pkg/fetcher"
-	"github.com/aooba/zeitgeist/pkg/model"
+	"github.com/AobaIwaki123/zeitgeist/pkg/config"
+	"github.com/AobaIwaki123/zeitgeist/pkg/driver"
+	"github.com/AobaIwaki123/zeitgeist/pkg/fetcher"
+	"github.com/AobaIwaki123/zeitgeist/pkg/model"
 )
 
 func main() {

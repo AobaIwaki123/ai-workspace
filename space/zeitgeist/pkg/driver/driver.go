@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/aooba/zeitgeist/pkg/model"
+	"github.com/AobaIwaki123/zeitgeist/pkg/model"
 )
 
 // Driver defines the interface for fetching items from a specific source endpoint.

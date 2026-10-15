@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aooba/zeitgeist/pkg/model"
+	"github.com/AobaIwaki123/zeitgeist/pkg/model"
 	"github.com/mmcdole/gofeed"
 )
 

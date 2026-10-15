@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aooba/zeitgeist/pkg/model"
+	"github.com/AobaIwaki123/zeitgeist/pkg/model"
 	"gopkg.in/yaml.v3"
 )
 
