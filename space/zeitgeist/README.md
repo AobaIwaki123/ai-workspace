@@ -1,7 +1,5 @@
 # Zeitgeist (時代精神)
 
-> **Note**: 本ツールの本体は独立リポジトリ [github.com/AobaIwaki123/zeitgeist](https://github.com/AobaIwaki123/zeitgeist) へ移行されました。
-
 Go言語で実装された、マルチソース・トレンド＆メディアフェッチャーCLI。
 
 複数メディア（RSS/Atom、HTMLスクレイピング、パブリックJSON等）から最新トレンド・話題のコンテンツを高速並行フェッチし、HTMLタグを除去・サニタイズしたクリーンな構造化JSONを標準出力（`stdout`）に出力します。
