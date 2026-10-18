@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Execute shiori CLI binary or fall back to go run
+if command -v shiori &>/dev/null; then
+  exec shiori "$@"
+elif [[ -x "$HOME/go/bin/shiori" ]]; then
+  exec "$HOME/go/bin/shiori" "$@"
+else
+  exec go run "$HOME/shiori/cmd/shiori" "$@"
+fi
