@@ -46,6 +46,7 @@
 - [x] IPA過去問・解答例・採点講評リソースインデックスの整備（`note/03_available_exam_resources_index.md`）
 - [x] 得点推論モデル・能力モニタリング仕様の策定（`note/04_score_prediction_and_monitoring_model.md`）
 - [x] 午前II・午後試験の予想得点・信頼度推論機能の実装（`quiz.py --stats`, `inspect-exam.py --score-summary`）
+- [x] 午前II対策CLIのGo言語実装（`db-quiz`）およびエージェント連携（`record`, `question`）・許可プロンプト完全排除（`.agents/settings.json` Allowlist追加）
 - [ ] 午後Iの過去問演習（概念データモデリングの解法ステップ定着）
 
 

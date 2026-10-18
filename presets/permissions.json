@@ -60,7 +60,11 @@
       "command(helm)",
       "command(helm .*)",
       "command(./scripts/.*)",
-      "command(bash ./scripts/.*)"
+      "command(bash ./scripts/.*)",
+      "command(spec)",
+      "command(spec .*)",
+      "command(db-quiz)",
+      "command(db-quiz .*)"
     ],
     "deny": [
       "command(rm -rf /)",

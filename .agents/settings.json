@@ -3,6 +3,7 @@
   "model": "Claude Opus 4.6 (Thinking)",
   "trustedWorkspaces": [
     "/Users/aobaiwaki",
+    "/Users/aobaiwaki/spec",
     "/Users/aobaiwaki/ai-workspace",
     "/Users/aobaiwaki/lumiscrape",
     "/home/aoba/ai-workspace"
@@ -84,7 +85,11 @@
       "command(.*llama-cli( .*)?)",
       "command(.*llama-server( .*)?)",
       "command(code .*)",
-      "command((\\./)?space/.*/scripts/.*)"
+      "command((\\./)?space/.*/scripts/.*)",
+      "command(db-quiz( .*)?)",
+      "command((.*/)?db-quiz( .*)?)",
+      "command(spec( .*)?)",
+      "command((.*/)?spec( .*)?)"
     ],
     "deny": [
       "command(rm -rf /)",
