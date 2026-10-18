@@ -7,6 +7,5 @@ if command -v memo &>/dev/null; then
 elif [[ -x "$HOME/go/bin/memo" ]]; then
   exec "$HOME/go/bin/memo" "$@"
 else
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  exec go run "$SCRIPT_DIR/../space/memo-cli/cmd/memo" "$@"
+  exec go run "$HOME/memo-cli/cmd/memo" "$@"
 fi
