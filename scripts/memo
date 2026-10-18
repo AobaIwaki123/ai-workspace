@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Execute memo CLI binary or fall back to go run
+if command -v memo &>/dev/null; then
+  exec memo "$@"
+elif [[ -x "$HOME/go/bin/memo" ]]; then
+  exec "$HOME/go/bin/memo" "$@"
+else
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  exec go run "$SCRIPT_DIR/../space/memo-cli/cmd/memo" "$@"
+fi
