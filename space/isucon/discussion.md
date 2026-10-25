@@ -62,10 +62,10 @@
 - 事前チェックは `pass=true`、フルベンチは `pass=true / スコア914`。評価APIの502が97件あるため、次回はその原因分析から再開する。
 - 移行元AWS EC2（`i-0ef519f88f2d7041e`）は停止済み。終了はせず、比較用に復旧可能な状態で保持する。
 
-## 2026-10-12 現在地
+## 2026-10-25 現在地
 
-- Proxmox VM（`isucon14` / VMID 236）をTailscale SSH経由で運用中。詳細は [note/12](note/12_proxmox_current_state.md) を参照。
-- `pt-query-digest`が出力されない原因を、MySQL設定未反映とslow logパスの固定参照と特定。
-- `slow_query_log=1`、`long_query_time=0`、`/var/log/mysql/mysql-slow.log`をVMへ反映し、実ベンチで`pt-query-digest.txt`生成を確認。
-- ログ収集修正は [PR #25](https://github.com/sharehouse-sanhaimu/isucon14-retry/pull/25) でレビュー待ち。
-- 最新ベンチは`pass=true / スコア979`だが、評価APIの502（CODE=5）が89件あり、次の調査対象は評価処理の失敗原因。
+- デグレPR（#34, #35, #37, #38, #42）を除外し、効果の高かった施策のみでクリーンな積み上げ型PRスタック（PR #33, PR #47 〜 PR #53）を再構成・全件プッシュ完了。
+- 複数セッション競合を防ぐリモート排他ロック機構（PR #56）およびサブMake修正（PR #57）を `main` にマージ済み。
+- 新PRスタック先端（PR #53: `perf/matching-candidate-availability-query`）でのベンチマーク走行において、**3,541点（✅ PASS / エラー0件）** を達成（基準値 2,326点から +1,215点）。
+- 次期ボトルネック（クエリ負荷第2位・27.6%を占める `chairs.access_token` 認証負荷）について、オンメモリキャッシュ等の導入検討を [Issue #59](https://github.com/sharehouse-sanhaimu/isucon14-retry/issues/59) として新規起票し別セッションへ委譲。
+- **次回アクション**: 検証済みPRスタック（PR #33, PR #47 〜 PR #53）を親から順次 `main` へマージし、新ベースラインを 3,500点台へ固定する。
