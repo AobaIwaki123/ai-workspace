@@ -8,6 +8,7 @@ __pycache__/
 models/
 *.gguf
 scratch/
+worklogs/
 # Environment, Secrets & Credentials
 .env
 .env.*
