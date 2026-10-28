@@ -34,19 +34,19 @@
 - [x] **技術ブログ執筆・レビュー**:
   - `inplace-gomemlimit/docs/tech-blog-draft.md` に第 1 章〜第 5 章、おまけコラム（Go のヒープ vs カーネルの RSS）、用語集、参考リンクを完備
   - 再現手順は独立ドキュメント `docs/reproduction-guide.md` に切り出し
-- [x] **GopherCon Japan 2027 CFP 応募原稿作成**:
+- [x] **GopherCon Japan 2027 CFP 応募原稿作成 & 提出完了**:
   - 提出先: GopherCon Japan 2027（Sessionize / 締切: 2026 年 11 月 1 日 23:59 JST）
+  - 提出日: 2026 年 10 月 28 日（提出完了）
   - タイトル: `Kubernetesの動的メモリ変更にGoは追従できるのか?`（28 文字）
   - ターゲット: `Internal Intermediate / 仕組みの深掘り・中級`
-  - 応募枠: 案 1（チャレンジセッション 20 分）および 案 2（ショートトーク 5〜7 分）の両枠を `docs/proposal-gophercon-japan-2027.md` に整備完了
+  - 応募枠: チャレンジセッション（20 分）を中心に Sessionize へエントリー完了（応募原稿: `inplace-gomemlimit/docs/proposal-gophercon-japan-2027.md`）
 
 ---
 
 ## 次のステップ（今後の作業候補）
 
-1. **GopherCon Japan 2027 応募**: Sessionize からプロポーザルを提出
-2. **PR #1 のマージ**: `inplace-gomemlimit` の `feature/tech-blog` ブランチを `main` へマージ
-3. **発展的探求（メモリ削減時の協調プロトコル）**:
-   - 現在はメモリ削減に `RestartContainer` が必須となっているが、アプリとインフラが協調して安全にメモリを縮小（FreeOSMemory 連携等）できる将来像の検討
-4. **別テーマへの復帰**:
-   - `atmo`（気圧アプリ）の iOS リリース準備（Apple Developer Program 登録、Xcode 設定）
+1. **PR #1 のマージ**: `inplace-gomemlimit` の `feature/tech-blog` ブランチ（技術記事・再現手順書・CFP原稿）を `main` へマージ
+2. **発展的探求（メモリ削減時の協調プロトコル）**:
+   - 現在はメモリ削減に `RestartContainer` が必須となっているが、アプリとインフラが協調して安全にメモリを縮小（FreeOSMemory 連携等）できる将来像の調査・検討
+3. **別テーマへの復帰**:
+   - `atmo`（気圧アプリ）の iOS リリース準備（Apple Developer Program 登録、Xcode 設定、TestFlight 配信準備）
