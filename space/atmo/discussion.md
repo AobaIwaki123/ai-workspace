@@ -41,6 +41,6 @@
 - [note/01_ui_component_evaluation_and_architecture.md](note/01_ui_component_evaluation_and_architecture.md) - UIコンポーネント詳細評価レポート
 - [note/02_native_widget_and_deployment_guide.md](note/02_native_widget_and_deployment_guide.md) - ホーム画面ウィジェット実装とネイティブ配信・実機転送手順書
 - [note/03_testflight_distribution_guide.md](note/03_testflight_distribution_guide.md) - TestFlight 配信手順と運用ガイド
-- [AobaIwaki123/atmo (GitHub)](https://github.com/AobaIwaki123/atmo) - Go バックエンド
-- [AobaIwaki123/atmo-app (GitHub)](https://github.com/AobaIwaki123/atmo-app) - Flutter フロントエンド
+- [AobaIwaki123/atmo (GitHub)](https://github.com/AobaIwaki123/atmo) - Go バックエンド & Web ホスティング (docs/architecture.md 完備)
+- [AobaIwaki123/atmo-app (GitHub)](https://github.com/AobaIwaki123/atmo-app) - Flutter フロントエンド (docs/architecture.md 完備)
 
