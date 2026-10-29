@@ -33,6 +33,7 @@
   - 自作ウォッチャーにより、再起動ゼロのまま `GOMEMLIMIT` が即座に追従（460MiB → 921MiB）することを目視確認
 - [x] **技術ブログ執筆・レビュー**:
   - `inplace-gomemlimit/docs/tech-blog-draft.md` に第 1 章〜第 5 章、おまけコラム（Go のヒープ vs カーネルの RSS）、用語集、参考リンクを完備
+  - VPA の歴史的苦悩（`updateMode: Off` 運用の実態、Datadog ドキュメント、AEP-4016 等）を一次出典付きで第 1 章に拡充
   - 再現手順は独立ドキュメント `docs/reproduction-guide.md` に切り出し
 - [x] **GopherCon Japan 2027 CFP 応募原稿作成 & 提出完了**:
   - 提出先: GopherCon Japan 2027（Sessionize / 締切: 2026 年 11 月 1 日 23:59 JST）
@@ -40,6 +41,9 @@
   - タイトル: `Kubernetesの動的メモリ変更にGoは追従できるのか?`（28 文字）
   - ターゲット: `Internal Intermediate / 仕組みの深掘り・中級`
   - 応募枠: チャレンジセッション（20 分）を中心に Sessionize へエントリー完了（応募原稿: `inplace-gomemlimit/docs/proposal-gophercon-japan-2027.md`）
+- [x] **スライド構成・Q&A 戦略の策定**:
+  - 導入フック: 現場が長年悩んできた「VPA の Pod Evict・再起動によるダウンタイム」と KEP-1287 の期待から切り出す。
+  - 他言語比較（JVM / V8 等）の扱い: メイン発表には含めず、「参考調査（事前AI調査ベース）」と明記した上で Q&A 用の補足スライド（Appendix）に留め、質問が出た場合のみ安全に回答する方針とする。
 
 ---
 
