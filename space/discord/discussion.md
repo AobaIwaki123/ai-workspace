@@ -21,6 +21,7 @@
 | **Step 5** | **Discord MCP スキル整備** | `discord-mcp` 利用知見、認証落とし穴、マトリクスを `.agents/skills/discord-mcp` に集約 | 完了 |
 | **Step 6** | **MCP サーバー安全性監査** | パッケージ、静的コード、ファイル操作、権限、クレデンシャル監査を実施し `note/02` に整理 | 完了 |
 | **Step 7** | **Proxmox VM 構築 & 常駐化移行** | Terraform (`terraform.vm`) による Ubuntu VM 起票、Ansible による環境初期化、AI フレンドリー基盤設計 | 進行中 ([note/09](./note/09_proxmox_vm_provisioning_and_ai_friendly_automation.md)) |
+| **Step 8** | **タイムライン同期 CLI 開発 (`timeline-sync`)** | 壁打ちタイムラインを Discord `#ai` チャンネルへ Embed / テキスト形式で即時送信・更新する Go 製 CLI 構築 | 未着手 ([note/13](./note/13_timeline_sync_cli_spec.md)) |
 
 ---
 
@@ -38,6 +39,8 @@
 - [**10. API駆動型 Homelab オーケストレーション基盤設計**](./note/10_api_driven_homelab_orchestration_architecture.md): Terraform/Ansible のマイクロ API 化、RBAC・スコープ制限、非同期ジョブ制御、MCP 連携案
 - [**11. OAuth トークンライフサイクルとヘッドレス VM 運用における脅威モデル・セキュリティ監査**](./note/11_oauth_token_lifecycle_and_security_threat_model.md): リフレッシュトークン永続化仕様、プロンプトインジェクションによるトークン強奪リスク、多層防御策
 - [**12. Google Drive MCP サーバーのセットアップ手順とアーキテクチャ**](./note/12_google_drive_mcp_setup_and_architecture.md): Google Cloud 公式 Managed vs ローカル stdio、OAuth 同意画面・Desktop App 構成、最小スコープ設計
+- [**13. タイムライン同期 CLI ツール設計仕様・要件定義ノート**](./note/13_timeline_sync_cli_spec.md): 壁打ちタイムラインの Discord 自動同期、Embed ペイロード構築、Markdown パーサー、Go CLI アーキテクチャ設計
+
 
 ---
 

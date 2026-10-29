@@ -141,3 +141,11 @@ ai-workspace全体に関する規約やworkspace単位の規約について、�
 - スキルの作成・編集時は、`.agents/rules/skill-authoring.md` に基づきベストプラクティス（Frontmatter、Progressive Disclosure、スクリプト化、検証手順等）のセルフレビューを自動実施します。
 - スキルの静的解析・品質チェックには `review-skill` スキル（または `./.agents/skills/review-skill/scripts/validate-skill.sh`）を活用します。
 - コマンド許可プロンプトの頻発時は `auto-allow-command` スキルを活用してAllowlistの更新を提案します。
+
+# 予定・タイムラインのDiscord同期プロトコル (Discord Timeline Sync)
+
+- **タイムライン確定時の自動同期**:
+  - セッション内の壁打ちによって本日の行動計画やタイムライン、休暇中の確定スケジュールが作成・更新された際は、ユーザーがスマホや外出先から即座に確認できるよう、エージェントが自動的に Discord の `#ai` チャンネル（ID: `1555181295590580295`）へ整形したメッセージを送信（同期）します。
+  - 送信には `space/discord/scripts/send-message.sh` または Discord MCP（`discord_send_message`）を使用します。
+- **CLI化に向けた仕様管理**:
+  - タイムライン同期処理を Go 製 CLI ツール（`timeline-sync` 等）として本格実装するための設計・仕様は `space/discord/note/13_timeline_sync_cli_spec.md` に集約・管理します。
