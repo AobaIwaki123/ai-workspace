@@ -100,6 +100,17 @@ space/<workspace-name>/
 - **外部依存の極小化 (Minimal Dependencies)**:
   - 「依存は少ないに越したことはない」を大原則とし、外部ツールやライブラリ（Tailwind等）に過度に依存せず、言語やプラットフォーム標準（Web標準CSS、Go標準パッケージ等）でシンプルに解決できる場合は依存の追加を厳に避けます。
 
+# クラウドネイティブ標準と Argo CD エコシステムの優先 (Cloud-Native Standards over Hand-Rolled CD)
+
+- **エコシステム標準機能の徹底活用と自前実装の禁止**:
+  - デプロイ、イメージ更新、ロールアウト、トラフィック切り替えにおいて、独自のシェルスクリプト（`sed` によるタグ置換）、CI から Git への書き戻しコミット（`[skip ci]`）、独自ポーリング等の「手前味噌な自前実装（Hand-Rolled Automation）」を禁止します。
+  - Argo CD およびその公式エコシステム（**Argo Rollouts** による Blue/Green・Canary 切り替え、**Argo CD Image Updater** によるレジストリ自動追跡と宣言的更新）などの CNCF 卒業・公式標準ツールを最優先で採用します。
+- **Git 履歴の純粋性維持（Anti-Git Churn）**:
+  - CI ビルドごとの短縮 SHA タグ更新のために Git リポジトリへ自動コミット（`chore(deploy): update image tag`）を乱発する運用を原則廃止・脱却します。
+  - CI は「コンテナイメージのビルド & レジストリプッシュ（GHCR）」のみに専念させ、クラスタへの反映は Argo CD Image Updater（またはクリーンなパラメータオーバーライド）に委任することで、Git のコミットログを人間の意思決定と設計変更のみに保ちます。
+- **宣言的 CRD による関心の分離**:
+  - すでに CNCF や Argo プロジェクトで枯れきっている課題（高度なデプロイ戦略、イメージ更新検知、健全性判定）を独自スクリプトで再発明せず、宣言的 CRD（Rollout, Application）でスマートかつ決定論的に解決します。
+
 # 権限・セキュリティ設定 (Permissions)
 
 - プロジェクト共通の許可・禁止ルールは `.agents/settings.json` または `presets/permissions.json` に定義します。
