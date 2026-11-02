@@ -58,6 +58,12 @@ space/<workspace-name>/
 - **絵文字の不使用**:
   - ドキュメント（README、ROADMAP等）では原則として絵文字を使用しません。
 
+# 継続的バージョニングとリリースマネジメント (Continuous Versioning & Release Governance)
+
+- **機能追加・バグ修正時の適宜バージョニング**:
+  - 各プロダクトやリポジトリにおいて、機能追加（`feat`: minor バンプ）、バグ修正（`fix`: patch バンプ）、破壊的変更（`feat!`: major バンプ）を実施・PRマージした際は、バージョン番号を放置せず、適宜プロジェクト規約に従ったバージョニング（`VERSION` ファイルや `package.json` の更新、Git タグや GitHub リリースの発行）を実施します。
+  - バージョン番号の管理が形骸化・遅延しないよう、プロジェクト固有のリリーススクリプト（例: `./scripts/release.sh [patch|minor|major]`）が存在する場合は積極的に活用します。
+
 # CI / Go / OpenAPI 開発・トラブルシューティング知見 (CI Best Practices)
 
 - CI（GitHub Actions）の構築、Go バージョン固定、OpenAPI コード生成、Linter 対策において過去に得られた知見と失敗防止策は **`.agents/rules/ci-troubleshooting.md`** に集約しています。
