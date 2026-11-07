@@ -9,12 +9,12 @@ iOS アプリ「ソラケア」（リポジトリ: `AobaIwaki123/atmo-app`）の
 
 | 日付 | 出来事 / アクション | 状態 |
 |---|---|---|
-| 2026-11-02 (PST) | App Store Connect にバージョン 1.0 を初回審査提出 | 完了 |
-| 2026-11-03 (JST) | Apple Review より Guideline 2.1（情報提供依頼）の通知を受信 | 対応中 |
+| 2026-11-02 (PST) | App Store Connect にバージョン 1.0 (Build 4) を初回審査提出 | 完了 |
+| 2026-11-03 (JST) | Apple Review より Guideline 2.1（情報提供依頼）の通知を受信 | 完了 |
 | 2026-11-07 (JST) | 通知内容の整理、要求事項の分析、実機Widget録画手順の策定 | 完了 |
 | 2026-11-07 (JST) | iPhone 実機での動画撮影（15.9秒 / 18.4MB / 1170×2532）および検証 | 完了 |
-| 2026-11-07 (JST) | `AobaIwaki123/atmo-app` 側に Issue #24 を起票・現在地を更新 | 完了 |
-| 後日 | App Store Connect に動画アップロード ＆ Notes 貼り付け・再提出 | 未着手（後日実施） |
+| 2026-11-07 (JST) | `AobaIwaki123/atmo-app` 側に Issue #24 を起票 | 完了 |
+| 2026-11-07 (JST) | App Store Connect に動画添付 ＆ Notes 貼り付け、バージョン 1.0 (Build 4) で再提出完了 | **完了（審査待ち）** |
 
 ---
 
